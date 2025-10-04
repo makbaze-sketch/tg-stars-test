@@ -10,34 +10,87 @@
     :root{
       --bg:#0b0c10; --card:#131419; --stroke:#22242B; --text:#F3F4F8; --muted:#A8AAB6;
       --accent:#7C5CFF; --accent2:#00D1FF; --ok:#73FFBF; --warn:#FFD166;
+      --shadow: 0 20px 60px rgba(0,0,0,.55);
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--text); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;
       background:
         radial-gradient(60% 60% at 80% 10%, rgba(124,92,255,.18), transparent 60%),
         radial-gradient(50% 50% at 10% 90%, rgba(0,200,255,.12), transparent 60%),
-        var(--bg);}
-    .wrap{min-height:100%;display:grid;place-items:center;padding:28px 16px}
-    .card{width:min(900px,96vw);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
-      border:1px solid var(--stroke);border-radius:22px;padding:22px 18px;backdrop-filter:blur(8px)}
-    .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-    .title{display:flex;gap:12px;align-items:center}
-    .logo{width:38px;height:38px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent))}
-    h1{margin:0;font-size:22px} .sub{margin:2px 0 0;color:var(--muted);font-size:14px}
-    .badges{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
-    .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa}
-    .badge.warn{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}
-    .grid{display:grid;gap:12px}
-    .block{border:1px solid var(--stroke);border-radius:16px;background:#0f1015;padding:14px}
-    .block h3{margin:0 0 6px;font-size:16px}
+        var(--bg);
+      overflow-x:hidden;
+    }
+
+    .wrap{min-height:100%; display:grid; grid-template-rows:auto 1fr auto; padding:18px 12px 84px}
+    .card{
+      width:min(1000px, 98vw);
+      margin:0 auto;
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      border:1px solid var(--stroke); border-radius:22px; padding:16px;
+      backdrop-filter:blur(8px); box-shadow:var(--shadow);
+    }
+    .head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
+    .title{display:flex; align-items:center; gap:12px}
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));
+      box-shadow:0 0 24px rgba(124,92,255,.45), inset 0 0 22px rgba(255,255,255,.08);
+      animation:spin 10s linear infinite;
+    }
+    @keyframes spin { from{rotate:0} to{rotate:360deg} }
+    h1{margin:0;font-size:22px} .sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+    .badges{display:flex; gap:8px; flex-wrap:wrap}
+    .badge{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); background:#0f1015aa}
+    .badge.warn{border-color:rgba(255,209,102,.4); background:rgba(255,209,102,.08)}
+
+    /* tabs */
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 12px}
+    .tab{
+      border:1px solid var(--stroke); background:#14151b; color:var(--text); padding:10px 14px;
+      border-radius:12px; cursor:pointer; user-select:none;
+      transition:transform .12s, box-shadow .2s;
+    }
+    .tab:hover{ transform:translateY(-1px); box-shadow:0 0 22px rgba(124,92,255,.25)}
+    .tab.active{ outline:2px solid rgba(124,92,255,.45) }
+
+    .section{ display:none }
+    .section.active{ display:block; }
+
+    /* blocks */
+    .grid{display:grid; gap:12px}
+    .block{
+      border:1px solid var(--stroke); border-radius:16px; background:#0f1015; padding:14px 14px 12px;
+    }
+    .block h3{margin:0 0 8px; font-size:16px}
     .muted{color:var(--muted)}
-    .list{display:grid;gap:8px;margin-top:6px}
-    .row{display:flex;gap:10px;align-items:flex-start}
+    .list{display:grid; gap:10px; margin-top:6px}
+    .row{display:flex; gap:10px; align-items:flex-start}
     .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);margin-top:8px;box-shadow:0 0 10px var(--accent2)}
-    .cta{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-    .btn{border:1px solid var(--stroke);background:#1b1c22;border-radius:12px;padding:10px 14px;color:var(--text);text-decoration:none}
-    .btn.primary{border-color:rgba(124,92,255,.5);box-shadow:0 0 20px rgba(124,92,255,.25)}
-    @media (max-width:480px){.head{flex-direction:column;align-items:flex-start}}
+
+    /* footer bar */
+    .footer{
+      position:fixed; left:0; right:0; bottom:0;
+      background:rgba(15,16,21,.85); backdrop-filter:blur(8px);
+      border-top:1px solid var(--stroke); padding:10px 12px;
+      display:flex; justify-content:center;
+    }
+    .btn{
+      border:1px solid var(--stroke); background:#1b1c22; color:var(--text);
+      border-radius:12px; padding:12px 16px; text-decoration:none; font-weight:800; cursor:pointer;
+      box-shadow:0 0 0 rgba(124,92,255,0); transition:transform .12s, box-shadow .2s;
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow:0 0 26px rgba(124,92,255,.35) }
+    .btn.primary{ border-color:rgba(124,92,255,.45) }
+
+    /* canvas holder */
+    .canvas-wrap{
+      position:relative; border:1px dashed rgba(255,255,255,.08);
+      border-radius:14px; overflow:hidden; background:radial-gradient(120% 120% at 10% 0%, rgba(124,92,255,.18), transparent 60%), #0f1116;
+    }
+    canvas{ display:block; width:100%; height:360px; }
+    .hint{position:absolute; right:10px; top:10px; font-size:12px; color:var(--muted); background:#0f1015aa; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke)}
   </style>
 </head>
 <body>
@@ -47,72 +100,308 @@
         <div class="title">
           <div class="logo"></div>
           <div>
-            <h1>Qleweta — статус проекта</h1>
-            <p class="sub">Мини-приложение пока в активной разработке</p>
+            <h1>Qleweta — Статус & Дисклеймер</h1>
+            <p class="sub">Мини-приложение в активной разработке</p>
           </div>
         </div>
         <div class="badges">
           <span class="badge warn">Beta</span>
-          <span class="badge">Версия: 0.1</span>
+          <span class="badge">Версия: 0.2</span>
           <span class="badge">Обновлено: сегодня</span>
         </div>
       </div>
 
-      <div class="grid">
-        <div class="block">
-          <h3>Что сейчас работает</h3>
-          <div class="list">
-            <div class="row"><div class="dot"></div><div>Открытие мини-приложений из бота</div></div>
-            <div class="row"><div class="dot"></div><div>Отправка заказа в чат и единичный инвойс в Stars</div></div>
-            <div class="row"><div class="dot"></div><div>Профиль: сумма потраченных звёзд и уровень</div></div>
-          </div>
-        </div>
-
-        <div class="block">
-          <h3>Важно знать</h3>
-          <p class="muted" style="margin:6px 0 0">
-            Проект в beta-стадии. Возможны баги, задержки и изменения логики без предупреждения.
-            Перед покупкой убедись, что понимаешь, что именно получаешь.
-          </p>
-        </div>
-
-        <div class="block">
-          <h3>Дисклеймер</h3>
-          <div class="list">
-            <div class="row"><div class="dot"></div><div>Все покупки в Stars необратимы по правилам Telegram. Мы не возвращаем звёзды.</div></div>
-            <div class="row"><div class="dot"></div><div>Команда не несёт ответственности за действия пользователей и сторонние сервисы.</div></div>
-            <div class="row"><div class="dot"></div><div>Используя бота, вы соглашаетесь с этими условиями и локальными законами вашего региона.</div></div>
-          </div>
-        </div>
-
-        <div class="block">
-          <h3>Что дальше</h3>
-          <div class="list">
-            <div class="row"><div class="dot"></div><div>Улучшения UX iOS, история покупок, реферальная система.</div></div>
-            <div class="row"><div class="dot"></div><div>Новые пакеты и внутриигровые роли: Mini → Plus → Ultra.</div></div>
-          </div>
-          <div class="cta">
-            <a href="#" class="btn">Связаться с поддержкой</a>
-            <a href="https://t.me/QlewetaBot" class="btn primary">Вернуться в бота</a>
-          </div>
-        </div>
-
-        <div class="block">
-          <h3>Напоминание</h3>
-          <p class="muted" style="margin:6px 0 0">
-            Пока что <b>не рекомендуем</b> совершать покупки — дождитесь стабильного релиза.
-            Обновления будут выходить часто и по делу.
-          </p>
-        </div>
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-tab="t1">Статус</div>
+        <div class="tab" data-tab="t2">Как сделано</div>
+        <div class="tab" data-tab="t3">Песочница</div>
       </div>
+
+      <!-- Section 1: Status -->
+      <section id="t1" class="section active">
+        <div class="grid">
+          <div class="block">
+            <h3>Что уже работает</h3>
+            <div class="list">
+              <div class="row"><div class="dot"></div><div>Открытие мини-приложений из бота</div></div>
+              <div class="row"><div class="dot"></div><div>Отправка заказа в чат и единичный инвойс в Stars</div></div>
+              <div class="row"><div class="dot"></div><div>Профиль: сумма потраченных звёзд и уровень</div></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <h3>Важно знать</h3>
+            <p class="muted" style="margin:6px 0 0">
+              Проект в beta-стадии. Возможны баги, задержки и изменения логики без предупреждения.
+              Перед покупкой убедись, что понимаешь, что именно получаешь.
+            </p>
+          </div>
+
+          <div class="block">
+            <h3>Дисклеймер</h3>
+            <div class="list">
+              <div class="row"><div class="dot"></div><div>Покупки в Stars необратимы по правилам Telegram — возвратов нет.</div></div>
+              <div class="row"><div class="dot"></div><div>Команда не несёт ответственности за действия пользователей и сторонние сервисы.</div></div>
+              <div class="row"><div class="dot"></div><div>Используя бота, вы соглашаетесь с этими условиями и локальными законами.</div></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <h3>Что дальше</h3>
+            <div class="list">
+              <div class="row"><div class="dot"></div><div>История покупок, реферальная система, улучшения UX на iOS.</div></div>
+              <div class="row"><div class="dot"></div><div>Новые пакеты и роли: Mini → Plus → Ultra.</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: How it's made -->
+      <section id="t2" class="section">
+        <div class="grid">
+          <div class="block">
+            <h3>Как это сделано</h3>
+            <p class="muted" style="margin:6px 0 8px">
+              Этот бот и оба мини-приложения собраны в ChatGPT — от архитектуры и пайплайна до кода и UI.
+            </p>
+            <div class="list">
+              <div class="row"><div class="dot"></div><div><b>Бот:</b> aiogram v3, SQLite, анти-дубли инвойсов и инфо, чистый чат.</div></div>
+              <div class="row"><div class="dot"></div><div><b>WebApp:</b> чистый HTML/CSS/JS, glow-стиль, лёгкие анимации, без библиотек.</div></div>
+              <div class="row"><div class="dot"></div><div><b>UX:</b> покупка через <code>sendData → close()</code>, чтобы сразу вернуться в чат без попапов.</div></div>
+              <div class="row"><div class="dot"></div><div><b>iOS/ПК:</b> бережный режим — без диплинков, всё максимально стабильно.</div></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <h3>Философия</h3>
+            <p class="muted" style="margin:6px 0 0">
+              Минимум трения, максимум ясности. Сначала — простая стабильная основа, потом фишки и красота.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Playground -->
+      <section id="t3" class="section">
+        <div class="block">
+          <h3>Glow-Stickman (перетащи меня)</h3>
+          <div class="canvas-wrap">
+            <canvas id="play"></canvas>
+            <div class="hint">тащи за любую точку • гравитация • отскоки</div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
+  <!-- bottom bar -->
+  <div class="footer">
+    <button class="btn primary" id="closeBtn">🔙 Вернуться в бота</button>
+  </div>
+
   <script>
+    // Telegram WebApp init
     if (window.Telegram?.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
     }
+
+    // Tabs
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.section');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.tab).classList.add('active');
+      try { Telegram.WebApp?.HapticFeedback?.impactOccurred('light'); } catch(e){}
+    }));
+
+    // Close button -> just close webapp
+    document.getElementById('closeBtn').addEventListener('click', ()=>{
+      try { Telegram.WebApp.close(); } catch(e){}
+    });
+
+    // ============== Glow Stickman Physics (Canvas, no libs) ==============
+    const canvas = document.getElementById('play');
+    const ctx = canvas.getContext('2d');
+
+    function resize(){
+      const w = canvas.parentElement.clientWidth;
+      const h = 360;
+      canvas.width = Math.floor(w * devicePixelRatio);
+      canvas.height = Math.floor(h * devicePixelRatio);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      scale = devicePixelRatio;
+    }
+    let scale = 1;
+    resize();
+    addEventListener('resize', resize);
+
+    // simple Verlet particles
+    class P {
+      constructor(x,y,lock=false){
+        this.x = this.px = x; this.y = this.py = y; this.lock = lock;
+        this.ax = 0; this.ay = 0;
+      }
+      addForce(fx,fy){ this.ax += fx; this.ay += fy; }
+      integrate(dt){
+        if (this.lock) { this.ax = this.ay = 0; return; }
+        const nx = this.x + (this.x - this.px) + this.ax*dt*dt;
+        const ny = this.y + (this.y - this.py) + this.ay*dt*dt;
+        this.px = this.x; this.py = this.y;
+        this.x = nx; this.y = ny;
+        this.ax = 0; this.ay = 0;
+      }
+      constrain(w,h){
+        const r = 10;
+        if (this.x < r){ this.x = r; }
+        if (this.x > w-r){ this.x = w-r; }
+        if (this.y < r){ this.y = r; }
+        if (this.y > h-r){ this.y = h-r; }
+      }
+    }
+    class Stick {
+      constructor(a,b,len,stiff=1){ this.a=a; this.b=b; this.len=len; this.stiff=stiff; }
+      satisfy(){
+        const dx = this.b.x - this.a.x, dy = this.b.y - this.a.y;
+        let d = Math.hypot(dx,dy) || 1;
+        const diff = (d - this.len)/d * this.stiff;
+        const offx = dx*diff*0.5, offy = dy*diff*0.5;
+        if (!this.a.lock){ this.a.x += offx; this.a.y += offy; }
+        if (!this.b.lock){ this.b.x -= offx; this.b.y -= offy; }
+      }
+    }
+
+    // build stickman
+    const W = ()=>canvas.width/scale, H = ()=>canvas.height/scale;
+    const cx = 0.5*W(), cy = 0.3*H();
+    const head = new P(cx, cy-30);
+    const neck = new P(cx, cy);
+    const hip  = new P(cx, cy+40);
+    const lsh  = new P(cx-28, cy+2), rsh = new P(cx+28, cy+2);
+    const lel  = new P(cx-52, cy+34), rel = new P(cx+52, cy+34);
+    const lwr  = new P(cx-70, cy+70), rwr = new P(cx+70, cy+70);
+    const lk   = new P(cx-16, cy+78), rk  = new P(cx+16, cy+78);
+    const laf  = new P(cx-22, cy+120), raf = new P(cx+22, cy+120);
+
+    const pts = [head, neck, hip, lsh, rsh, lel, rel, lwr, rwr, lk, rk, laf, raf];
+    const sticks = [
+      new Stick(head, neck, 30, 0.9),
+      new Stick(neck, hip,  40, 0.9),
+      new Stick(neck, lsh,  28, 0.9), new Stick(lsh, lel, 34, 0.9), new Stick(lel, lwr, 38, 0.9),
+      new Stick(neck, rsh,  28, 0.9), new Stick(rsh, rel, 34, 0.9), new Stick(rel, rwr, 38, 0.9),
+      new Stick(hip, lk,    42, 0.9), new Stick(lk, laf,  44, 0.9),
+      new Stick(hip, rk,    42, 0.9), new Stick(rk, raf,  44, 0.9),
+      // стабилизаторы (диагонали) для устойчивости
+      new Stick(lsh, rsh, 56, 0.5),
+      new Stick(lk,  rk,  32, 0.4)
+    ];
+
+    // drag
+    let dragging = null;
+    let offsetX = 0, offsetY = 0;
+
+    function screenToWorld(e){
+      const rect = canvas.getBoundingClientRect();
+      const x = (('touches' in e) ? e.touches[0].clientX : e.clientX) - rect.left;
+      const y = (('touches' in e) ? e.touches[0].clientY : e.clientY) - rect.top;
+      return { x: x, y: y };
+    }
+    function down(e){
+      const p = screenToWorld(e);
+      // closest point
+      let best = null, bestD = 1e9;
+      for (const pt of pts){
+        const d = Math.hypot(pt.x*scale - p.x, pt.y*scale - p.y);
+        if (d < bestD){ bestD = d; best = pt; }
+      }
+      if (best && bestD < 42){
+        dragging = best;
+        dragging.px = dragging.x; dragging.py = dragging.y;
+        offsetX = dragging.x*scale - p.x; offsetY = dragging.y*scale - p.y;
+        e.preventDefault();
+      }
+    }
+    function move(e){
+      if (!dragging) return;
+      const p = screenToWorld(e);
+      dragging.x = (p.x + offsetX)/scale;
+      dragging.y = (p.y + offsetY)/scale;
+      dragging.px = dragging.x; dragging.py = dragging.y; // «держим» под курсором
+    }
+    function up(){ dragging = null; }
+
+    canvas.addEventListener('mousedown', down);
+    canvas.addEventListener('mousemove', move);
+    addEventListener('mouseup', up);
+    canvas.addEventListener('touchstart', down, {passive:false});
+    canvas.addEventListener('touchmove', move, {passive:false});
+    addEventListener('touchend', up);
+
+    // physics loop
+    let last = performance.now();
+    function tick(now){
+      const dtMs = Math.min(32, now - last); last = now;
+      const dt = dtMs/1000;
+
+      // gravity
+      for (const p of pts) p.addForce(0, 900); // px/s^2
+
+      // integrate
+      for (const p of pts) p.integrate(dt);
+
+      // satisfy constraints a few iterations
+      for (let i=0;i<4;i++){
+        for (const s of sticks) s.satisfy();
+        for (const p of pts) p.constrain(W(), H());
+      }
+
+      // render
+      const ctx2 = ctx;
+      ctx2.save();
+      ctx2.scale(scale, scale);
+      ctx2.clearRect(0,0,W(),H());
+
+      // glow style
+      ctx2.lineWidth = 4;
+      ctx2.lineCap = 'round';
+      ctx2.shadowBlur = 18;
+      ctx2.shadowColor = 'rgba(124,92,255,.65)';
+      ctx2.strokeStyle = 'rgba(180,170,255,.95)';
+
+      // draw bones
+      ctx2.beginPath();
+      const lines = [
+        [head, neck], [neck, hip],
+        [neck, lsh], [lsh, lel], [lel, lwr],
+        [neck, rsh], [rsh, rel], [rel, rwr],
+        [hip, lk], [lk, laf],
+        [hip, rk], [rk, raf],
+        [lsh, rsh], [lk, rk]
+      ];
+      for (const [a,b] of lines){
+        ctx2.moveTo(a.x, a.y); ctx2.lineTo(b.x, b.y);
+      }
+      ctx2.stroke();
+
+      // head glow
+      ctx2.shadowBlur = 22;
+      ctx2.fillStyle = 'rgba(124,92,255,.9)';
+      ctx2.beginPath(); ctx2.arc(head.x, head.y, 10, 0, Math.PI*2); ctx2.fill();
+
+      // joints
+      ctx2.shadowBlur = 10; ctx2.fillStyle = 'rgba(0,209,255,.9)';
+      for (const p of pts){
+        ctx2.beginPath(); ctx2.arc(p.x, p.y, 3, 0, Math.PI*2); ctx2.fill();
+      }
+
+      ctx2.restore();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   </script>
 </body>
 </html>
