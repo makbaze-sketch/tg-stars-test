@@ -17,71 +17,56 @@
     html,body{height:100%}
     body{
       margin:0; color:var(--text); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;
-      background: radial-gradient(60% 60% at 80% 10%, rgba(124,92,255,.18), transparent 60%),
-                  radial-gradient(50% 50% at 10% 90%, rgba(0,200,255,.12), transparent 60%),
-                  var(--bg);
+      background:
+        radial-gradient(60% 60% at 80% 10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(50% 50% at 10% 90%, rgba(0,200,255,.12), transparent 60%),
+        var(--bg);
       overflow-x:hidden;
     }
 
-    /* === анимированный неон-фон === */
+    /* — неоновый фон — */
     .glow-bg{
       position:fixed; inset:-20vmax; pointer-events:none; z-index:-1; filter:blur(60px);
       background:
         radial-gradient(30vmax 30vmax at 20% 20%, rgba(124,92,255,.3), transparent 60%),
         radial-gradient(35vmax 35vmax at 80% 70%, rgba(0,209,255,.25), transparent 60%),
         radial-gradient(25vmax 25vmax at 50% 10%, rgba(255,165,0,.18), transparent 60%);
-      animation: floatGlow 20s ease-in-out infinite alternate;
-      opacity:.9;
+      animation: floatGlow 20s ease-in-out infinite alternate; opacity:.9;
     }
-    @keyframes floatGlow{
-      from{ transform:translate3d(-2%, -2%, 0) scale(1) }
-      to  { transform:translate3d( 2%,  2%, 0) scale(1.03) }
-    }
+    @keyframes floatGlow{from{transform:translate3d(-2%,-2%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.03)}}
 
-    /* === контейнер === */
     .wrap{min-height:100%; display:grid; place-items:center; padding:28px 16px}
 
-    /* === карточка === */
     .card{
-      width:min(980px, 96vw);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      width:min(980px,96vw);
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
       border:1px solid var(--stroke); border-radius:22px; padding:22px 18px;
       box-shadow:var(--shadow); backdrop-filter:blur(8px);
-      transform:translateY(0); transition:transform .25s ease;
+      transform:translateY(0); transition:transform .25s;
     }
     .card:hover{ transform:translateY(-2px) }
 
-    /* === шапка === */
     .head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
     .title{display:flex; align-items:center; gap:10px}
     .logo{
       width:38px; height:38px; border-radius:12px;
-      background: conic-gradient(from 0deg, var(--accent), var(--accent2), var(--accent));
+      background:conic-gradient(from 0deg, var(--accent), var(--accent2), var(--accent));
       box-shadow:0 0 24px rgba(124,92,255,.45), inset 0 0 22px rgba(255,255,255,.08);
-      animation: spinSlow 9s linear infinite;
+      animation:spinSlow 9s linear infinite;
     }
-    @keyframes spinSlow{ from{rotate:0} to{rotate:360deg} }
-    h1{margin:0; font-size:22px; letter-spacing:.2px}
-    .sub{color:var(--muted); margin:0; font-size:14px}
+    @keyframes spinSlow{from{rotate:0}to{rotate:360deg}}
+    h1{margin:0; font-size:22px} .sub{color:var(--muted); margin:0; font-size:14px}
 
-    .env{
-      font-size:13px; padding:8px 12px; border:1px solid var(--stroke); border-radius:999px;
-      background:#0f1015aa;
-    }
+    .env{font-size:13px; padding:8px 12px; border:1px solid var(--stroke); border-radius:999px; background:#0f1015aa}
 
-    /* === сетка товаров === */
     .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:12px}
     .product{
       position:relative; background:#0f1015; border:1px solid var(--stroke); border-radius:18px;
-      padding:16px; box-shadow:0 10px 28px rgba(0,0,0,.35);
-      transition: transform .2s ease, box-shadow .2s ease;
-      perspective:800px;
+      padding:16px; box-shadow:0 10px 28px rgba(0,0,0,.35); perspective:800px;
+      transition:transform .2s, box-shadow .2s;
     }
     .product:hover{ transform:translateY(-3px); box-shadow:0 18px 40px rgba(0,0,0,.55) }
-    .tag{
-      position:absolute; top:10px; right:10px; font-size:11px; padding:4px 8px; border-radius:999px;
-      background:rgba(124,92,255,.18); border:1px solid rgba(124,92,255,.35); color:#D9D3FF
-    }
+    .tag{position:absolute; top:10px; right:10px; font-size:11px; padding:4px 8px; border-radius:999px; background:rgba(124,92,255,.18); border:1px solid rgba(124,92,255,.35); color:#D9D3FF}
     .title2{font-weight:800; margin:8px 0 4px; font-size:15px}
     .desc{color:var(--muted); font-size:13px; margin:0 0 14px; min-height:40px}
     .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
@@ -89,30 +74,26 @@
 
     .btn{
       border:0; border-radius:13px; padding:12px 14px; cursor:pointer; font-weight:900;
-      background:#1C1D22; color:var(--text);
-      box-shadow:0 0 0 rgba(124,92,255,0);
-      transition: transform .15s ease, box-shadow .2s ease;
+      background:#1C1D22; color:var(--text); box-shadow:0 0 0 rgba(124,92,255,0);
+      transition:transform .15s, box-shadow .2s;
     }
     .btn:hover{ transform:translateY(-1px); box-shadow:0 0 36px rgba(124,92,255,.55) }
     .btn:active{ transform:translateY(0) }
 
-    /* === футер === */
     .foot{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px; color:var(--muted); font-size:13px}
-    .status.ok{ color:var(--ok) } .status.bad{ color:var(--bad) }
+    .status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
 
-    /* === тост === */
     .toast{
       position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(120%);
       background:#12131a; border:1px solid var(--stroke); color:var(--text);
       padding:12px 16px; border-radius:12px; box-shadow:var(--shadow); z-index:5;
-      transition: transform .3s ease, opacity .3s ease; opacity:0; pointer-events:none;
+      transition:transform .3s, opacity .3s; opacity:0; pointer-events:none;
     }
     .toast.show{ transform:translateX(-50%) translateY(0); opacity:1 }
 
-    /* адаптив */
     @media (max-width:420px){
-      .head{ flex-direction:column; align-items:flex-start }
-      .foot{ flex-direction:column; align-items:flex-start }
+      .head{flex-direction:column; align-items:flex-start}
+      .foot{flex-direction:column; align-items:flex-start}
     }
   </style>
 </head>
@@ -165,13 +146,8 @@
       </div>
 
       <div class="foot">
-        <span>💡 Оплата происходит в чате с ботом. Мы подскажем и перенаправим 👇</span>
+        <span>💡 Оплата происходит в чате с ботом. Мы автоматически вернём тебя туда после клика «Купить».</span>
         <span id="status" class="status"></span>
-      </div>
-
-      <!-- запасная видимая кнопка для iOS -->
-      <div id="ios-fallback" style="display:none; margin-top:10px;">
-        <a id="ios-link" class="btn" style="display:inline-block; text-decoration:none;">🔗 Открыть чат с ботом</a>
       </div>
     </div>
   </div>
@@ -179,7 +155,8 @@
   <div class="toast" id="toast">Готово</div>
 
   <script>
-    const BOT_USERNAME = "QlewetaBot"; // без @ — проверь точно!
+    // (username не нужен — диплинки отключили)
+    // const BOT_USERNAME = "QlewetaBot";
 
     const envEl = document.getElementById('env');
     const statusEl = document.getElementById('status');
@@ -194,18 +171,15 @@
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
 
-      try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e) {}
-
+      // на будущее — если когда-нибудь откроем инвойс внутри WebApp
       Telegram.WebApp.onEvent('invoiceClosed', (d) => {
         if (!d || !d.status) return;
         if (d.status === 'paid') {
           statusEl.textContent = "✅ Оплата прошла";
           statusEl.className = "status ok";
-          showToast("Спасибо за поддержку! 🫶");
         } else if (d.status === 'cancelled') {
           statusEl.textContent = "❌ Оплата отменена";
           statusEl.className = "status bad";
-          showToast("Платёж отменён");
         } else {
           statusEl.textContent = "⚠️ Неизвестный статус";
           statusEl.className = "status";
@@ -213,19 +187,11 @@
       });
     }
 
-    // показать запасную кнопку только на iOS
-    const iosBlock = document.getElementById('ios-fallback');
-    const iosLink  = document.getElementById('ios-link');
-    if (isIOS) {
-      iosBlock.style.display = '';
-      iosLink.href = `tg://resolve?domain=${BOT_USERNAME}`;
-    }
-
     // тост
     function showToast(text){
       toastEl.textContent = text;
       toastEl.classList.add('show');
-      setTimeout(()=>toastEl.classList.remove('show'), 2400);
+      setTimeout(()=>toastEl.classList.remove('show'), 1800);
     }
 
     // 3D-tilt
@@ -234,9 +200,7 @@
       function move(e){
         const x = (e.clientX - r.left) / r.width;
         const y = (e.clientY - r.top) / r.height;
-        const rx = (0.5 - y) * 8;
-        const ry = (x - 0.5) * 8;
-        card.style.transform = `translateY(-3px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        card.style.transform = `translateY(-3px) rotateX(${(0.5-y)*8}deg) rotateY(${(x-0.5)*8}deg)`;
       }
       function leave(){ card.style.transform = 'translateY(0) rotateX(0) rotateY(0)'; }
       card.addEventListener('mousemove', move);
@@ -244,46 +208,31 @@
       window.addEventListener('resize', ()=>{ r = card.getBoundingClientRect(); });
     });
 
-    // iOS-friendly переход в чат с аргументом (каскад 3 попыток)
-    function goToChat(code){
-      const https = `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(code)}`;
-      const tguri = `tg://resolve?domain=${BOT_USERNAME}&start=${encodeURIComponent(code)}`;
-      let jumped = false;
+    // ===== Покупка: sendData -> закрыть мини-апп =====
+    let busy = false;
 
-      if (isWebApp && Telegram.WebApp.openTelegramLink) {
-        Telegram.WebApp.openTelegramLink(https);
-        jumped = true;
-      }
-      setTimeout(()=>{ if (jumped && !isIOS) return; try { window.location.href = tguri; jumped = true; } catch(e){} }, 80);
-      setTimeout(()=>{ if (!jumped) window.location.href = https; }, 250);
-    }
-
-    // покупка: двойной триггер (sendData + deep-link)
     function buy(code){
-      if (!isWebApp) {
-        alert("Открой через кнопку бота в Telegram.");
+      if (!isWebApp) { alert("Открой через кнопку бота в Telegram."); return; }
+      if (busy) return; // защита от двойных кликов
+      busy = true;
+
+      showToast("Отправляю в бота…");
+      try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e){}
+
+      try {
+        Telegram.WebApp.sendData(code); // бот получит buy_* и вышлет 1 инвойс
+      } catch (e) {
+        console.warn("sendData failed", e);
+        busy = false;
+        showToast("Что-то не так…");
         return;
       }
 
-      // 1) отправляем заказ боту (он сразу пришлёт инвойс в чат)
-      try { Telegram.WebApp.sendData(code); } catch(e){ console.warn('sendData failed', e); }
-
-      // 2) попап — уводим в чат, где уже ждёт инвойс
-      Telegram.WebApp.showPopup({
-        title: "Перейти к оплате",
-        message: "Сейчас откроется чат с ботом, где появится окно оплаты.",
-        buttons: [
-          { id: "go", type: "default", text: "Перейти в чат" },
-          { type: "cancel" }
-        ]
-      }, (btnId)=>{ if (btnId === 'go') goToChat(code); });
-
-      // на iOS сразу обновим href запасной кнопки и через 600мс дадим доп.переход
-      if (isIOS && iosLink) iosLink.href = `tg://resolve?domain=${BOT_USERNAME}&start=${encodeURIComponent(code)}`;
-      if (isIOS) setTimeout(()=>goToChat(code), 600);
-
-      showToast("Открываю чат для оплаты…");
-      try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
+      // даём Телеге доставить событие и закрываем WebApp → сразу в чат
+      setTimeout(()=>{
+        try { Telegram.WebApp.close(); } catch(e){}
+        setTimeout(()=>{ busy = false; }, 1000);
+      }, isIOS ? 120 : 80);
     }
   </script>
 </body>
