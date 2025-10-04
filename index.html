@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Stars Shop</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#0b0c10;--card:#131419;--stroke:#22242B;--text:#EDEDF2;--muted:#A8AAB6}
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;display:grid;place-items:center;
+      background:
+        radial-gradient(60% 60% at 80% 10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(50% 50% at 10% 90%, rgba(0,200,255,.12), transparent 60%),
+        var(--bg);
+      color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto
+    }
+    .card{width:min(96vw,720px);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
+      border:1px solid var(--stroke);border-radius:20px;padding:22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+    h1{margin:0 0 6px;font-size:22px}
+    .muted{color:var(--muted);margin:0 0 14px;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+    .product{position:relative;padding:16px;border:1px solid var(--stroke);border-radius:16px;background:#0f1015;overflow:hidden;transition:.18s transform}
+    .product:hover{transform:translateY(-2px)}
+    .tag{position:absolute;top:10px;right:10px;font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(124,92,255,.18);border:1px solid rgba(124,92,255,.35);color:#D9D3FF}
+    .title{font-weight:700;margin:6px 0 2px}
+    .desc{color:var(--muted);font-size:13px;margin:0 0 10px;min-height:38px}
+    .btn{width:100%;border:0;border-radius:12px;padding:12px 14px;color:var(--text);background:#1C1D22;cursor:pointer;font-weight:800;letter-spacing:.2px;transition:box-shadow .18s,transform .18s}
+    .btn:hover{box-shadow:0 0 28px rgba(124,92,255,.55);transform:translateY(-1px)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+    .price{font-weight:800}
+    .foot{margin-top:14px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:10px}
+    .ok{color:#7CFFB2}.bad{color:#FF8B8B}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Магазин ⭐ Stars</h1>
+    <p class="muted">Выбери пакет — бот пришлёт окно оплаты в чат</p>
+
+    <div class="grid">
+      <div class="product">
+        <span class="tag">Старт</span>
+        <div class="title">Premium Mini</div>
+        <p class="desc">Разблокирует базовые фичи.</p>
+        <div class="row">
+          <div class="price">5⭐</div>
+          <button class="btn" onclick="buy('buy_5')">Купить</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <span class="tag">Топ выбор</span>
+        <div class="title">Premium Plus</div>
+        <p class="desc">Больше плюшек, лучший value.</p>
+        <div class="row">
+          <div class="price">20⭐</div>
+          <button class="btn" onclick="buy('buy_20')">Купить</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <span class="tag">Макс</span>
+        <div class="title">Premium Ultra</div>
+        <p class="desc">Всё и сразу. Поддержи проект 💜</p>
+        <div class="row">
+          <div class="price">100⭐</div>
+          <button class="btn" onclick="buy('buy_100')">Купить</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span id="env">проверка окружения…</span>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <script>
+    const BOT_USERNAME = "QlewetaBot"; // <-- ОБЯЗАТЕЛЬНО проверь!
+    const envEl = document.getElementById('env');
+    const statusEl = document.getElementById('status');
+    const isWebApp = !!(window.Telegram && Telegram.WebApp);
+
+    envEl.textContent = isWebApp ? "WebApp OK ✅" : "Not in Telegram ❌";
+    if (isWebApp) { Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
+
+    function goToChat(){
+      const https = `https://t.me/${BOT_USERNAME}`;
+      const tguri = `tg://resolve?domain=${BOT_USERNAME}`;
+      // 1) родной метод Telegram
+      if (isWebApp && Telegram.WebApp.openTelegramLink) {
+        Telegram.WebApp.openTelegramLink(https);
+        return;
+      }
+      // 2) tg:// схема (клиенты Телеги)
+      try { window.location.href = tguri; return; } catch(e){}
+      // 3) обычный https как запасной
+      window.location.href = https;
+    }
+
+    function buy(code){
+      if (!isWebApp) { alert("Открой через кнопку бота в Telegram."); return; }
+
+      // отправляем заказ боту — он сразу пришлёт инвойс в чат
+      Telegram.WebApp.sendData(code);
+
+      // попап "Перейти к оплате"
+      Telegram.WebApp.showPopup({
+        title: "Перейти к оплате",
+        message: "Сейчас откроется чат с ботом, где появится окно оплаты.",
+        buttons: [
+          { id: "go", type: "default", text: "Перейти в чат" },
+          { type: "cancel" }
+        ]
+      }, function(btnId){
+        if (btnId === "go") goToChat();
+      });
+    }
+  </script>
+</body>
+</html>
