@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Qleweta — Статус & Дисклеймер</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root{
+      --bg:#0b0c10; --card:#131419; --stroke:#22242B; --text:#F3F4F8; --muted:#A8AAB6;
+      --accent:#7C5CFF; --accent2:#00D1FF; --ok:#73FFBF; --warn:#FFD166;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;
+      background:
+        radial-gradient(60% 60% at 80% 10%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(50% 50% at 10% 90%, rgba(0,200,255,.12), transparent 60%),
+        var(--bg);}
+    .wrap{min-height:100%;display:grid;place-items:center;padding:28px 16px}
+    .card{width:min(900px,96vw);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      border:1px solid var(--stroke);border-radius:22px;padding:22px 18px;backdrop-filter:blur(8px)}
+    .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .title{display:flex;gap:12px;align-items:center}
+    .logo{width:38px;height:38px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent))}
+    h1{margin:0;font-size:22px} .sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+    .badges{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+    .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa}
+    .badge.warn{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}
+    .grid{display:grid;gap:12px}
+    .block{border:1px solid var(--stroke);border-radius:16px;background:#0f1015;padding:14px}
+    .block h3{margin:0 0 6px;font-size:16px}
+    .muted{color:var(--muted)}
+    .list{display:grid;gap:8px;margin-top:6px}
+    .row{display:flex;gap:10px;align-items:flex-start}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);margin-top:8px;box-shadow:0 0 10px var(--accent2)}
+    .cta{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    .btn{border:1px solid var(--stroke);background:#1b1c22;border-radius:12px;padding:10px 14px;color:var(--text);text-decoration:none}
+    .btn.primary{border-color:rgba(124,92,255,.5);box-shadow:0 0 20px rgba(124,92,255,.25)}
+    @media (max-width:480px){.head{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="title">
+          <div class="logo"></div>
+          <div>
+            <h1>Qleweta — статус проекта</h1>
+            <p class="sub">Мини-приложение пока в активной разработке</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge warn">Beta</span>
+          <span class="badge">Версия: 0.1</span>
+          <span class="badge">Обновлено: сегодня</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="block">
+          <h3>Что сейчас работает</h3>
+          <div class="list">
+            <div class="row"><div class="dot"></div><div>Открытие мини-приложений из бота</div></div>
+            <div class="row"><div class="dot"></div><div>Отправка заказа в чат и единичный инвойс в Stars</div></div>
+            <div class="row"><div class="dot"></div><div>Профиль: сумма потраченных звёзд и уровень</div></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Важно знать</h3>
+          <p class="muted" style="margin:6px 0 0">
+            Проект в beta-стадии. Возможны баги, задержки и изменения логики без предупреждения.
+            Перед покупкой убедись, что понимаешь, что именно получаешь.
+          </p>
+        </div>
+
+        <div class="block">
+          <h3>Дисклеймер</h3>
+          <div class="list">
+            <div class="row"><div class="dot"></div><div>Все покупки в Stars необратимы по правилам Telegram. Мы не возвращаем звёзды.</div></div>
+            <div class="row"><div class="dot"></div><div>Команда не несёт ответственности за действия пользователей и сторонние сервисы.</div></div>
+            <div class="row"><div class="dot"></div><div>Используя бота, вы соглашаетесь с этими условиями и локальными законами вашего региона.</div></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Что дальше</h3>
+          <div class="list">
+            <div class="row"><div class="dot"></div><div>Улучшения UX iOS, история покупок, реферальная система.</div></div>
+            <div class="row"><div class="dot"></div><div>Новые пакеты и внутриигровые роли: Mini → Plus → Ultra.</div></div>
+          </div>
+          <div class="cta">
+            <a href="#" class="btn">Связаться с поддержкой</a>
+            <a href="https://t.me/QlewetaBot" class="btn primary">Вернуться в бота</a>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Напоминание</h3>
+          <p class="muted" style="margin:6px 0 0">
+            Пока что <b>не рекомендуем</b> совершать покупки — дождитесь стабильного релиза.
+            Обновления будут выходить часто и по делу.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+    }
+  </script>
+</body>
+</html>
