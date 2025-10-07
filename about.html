@@ -2,377 +2,143 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"/>
-  <!-- Полностью мобильная адаптация; запрещаем зум, учитываем safe-area -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>Qleweta — Мини‑апп (Production)</title>
+  <title>Qleweta — Мини‑апп</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
   /* =====================================================================
-     QLEWETA MINI‑APP — MOBILE PRO v2 (Production‑ready, single file)
-     ---------------------------------------------------------------------
-     Цели этой версии:
-       • Убрать перевод — один базовый язык (RU). Все строки статичны.
-       • Максимально адаптировать под смартфоны: bottom‑nav, крупные хиты,
-         safe‑area, перформанс, плавные анимации (с учётом reduced‑motion).
-       • Полноценная «История покупок»: локальное/облачное хранение с
-         экспортом/импортом, очисткой и подсказками по интеграции.
-       • Полная переработка плитки «Объект»: показываем ключевые поля из
-         initDataUnsafe (премиум, платформа, тема, версия и т.п.).
-       • Исправить баг FAQ: при тапе не должно случаться масштабирование.
-       • Усилить визуал и микровзаимодействия, но без лишней тяжести.
-
-     Файл намеренно «толстый» (>1000 строк) с развернутыми комментариями,
-     чтобы поддержку и развитие было делать комфортно.
-  ====================================================================== */
-
+     QLEWETA MINI‑APP — 3 TABS (Status · Sandbox · FAQ)
+     Production‑ready single file. Mobile‑first, safe‑area aware, no i18n.
+     ===================================================================== */
   :root{
-    /* Базовая тёмная палитра; часть переменных затем синхронизируем с Telegram themeParams */
-    --bg:#070910;            /* фон страницы */
-    --card:#0c1018;          /* фон карточек */
-    --elev:#0f131c;          /* фон поднятых блоков */
-    --stroke:#1e2633;        /* разделители */
-    --text:#e9edf6;          /* основной текст */
-    --muted:#9aa3b2;         /* вторичный текст */
-    --accent:#7C5CFF;        /* фиолетовый */
-    --accent-2:#00D1FF;      /* циан */
-    --ok:#73FFBF;            /* успех */
-    --warn:#FFD166;          /* предупреждение */
-    --danger:#ff6b81;        /* ошибка */
+    --bg:#070910; --card:#0c1018; --elev:#0f131c; --stroke:#1e2633;
+    --text:#e9edf6; --muted:#9aa3b2; --accent:#7C5CFF; --accent2:#00D1FF;
+    --ok:#73FFBF; --warn:#FFD166; --danger:#ff6b81; --radius:18px; --gap:12px;
     --shadow:0 12px 40px rgba(0,0,0,.36);
-    --radius:18px;           /* общий радиус */
-    --gap:12px;              /* базовый отступ */
-    --safe-top: env(safe-area-inset-top);
-    --safe-right: env(safe-area-inset-right);
-    --safe-bottom: env(safe-area-inset-bottom);
-    --safe-left: env(safe-area-inset-left);
-
-    /* Акценты/свечение */
+    --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left); --safe-right: env(safe-area-inset-right);
     --glow: 0 0 22px rgba(124,92,255,.38), 0 0 44px rgba(124,92,255,.18);
-    --glow-2: 0 0 18px rgba(0,209,255,.35);
+    --glow2: 0 0 18px rgba(0,209,255,.35);
   }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .app{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
+  .header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(0,0,0,.88),rgba(0,0,0,.5));border-bottom:1px solid var(--stroke);padding:calc(10px + var(--safe-top)) var(--gap) 10px;backdrop-filter:blur(8px)}
+  .header-wrap{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
+  .title{display:flex;flex-direction:column}
+  .title h1{margin:0;font-size:16px}
+  .title .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
 
-  /* ===== Сброс и мобильные твики ===== */
-  *{ box-sizing:border-box }
-  html, body{ height:100% }
-  html{ scroll-behavior:smooth; -webkit-text-size-adjust: 100% }
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-    -webkit-tap-highlight-color: transparent; /* убираем синий блюр при тапе */
-    touch-action: manipulation;               /* убираем задержку 300ms и dbl‑tap zoom */
-  }
+  .page{display:none}
+  .page.active{display:block}
+  .container{max-width:980px;margin:0 auto;padding:14px var(--gap) calc(96px + var(--safe-bottom))}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--stroke);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:12px}
+  .block{border:1px solid var(--stroke);border-radius:16px;background:var(--elev);padding:12px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa}
+  .badge.warn{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}
 
-  /* ===== Каркас ===== */
-  .app{ min-height:100%; display:grid; grid-template-rows:auto 1fr auto }
+  /* Sandbox */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
+  .chip{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:999px;padding:10px 12px;font-weight:800;cursor:pointer;min-height:40px}
+  .chip.active{outline:2px solid rgba(124,92,255,.45);box-shadow:var(--glow)}
+  .canvas-wrap{position:relative;border:1px solid #0d1420;border-radius:16px;overflow:hidden;background:#000}
+  canvas{display:block;width:100%;height:380px}
+  .scene-hint{position:absolute;right:10px;top:10px;font-size:12px;color:#6cf;background:rgba(8,20,40,.6);padding:6px 10px;border-radius:999px;border:1px solid #153055}
 
-  .header{
-    position:sticky; top:0; z-index:20;
-    background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,.5));
-    border-bottom:1px solid var(--stroke);
-    padding:calc(10px + var(--safe-top)) var(--gap) 10px;
-    backdrop-filter: blur(8px);
-  }
-  .header-wrap{ max-width:980px; margin:0 auto; display:flex; align-items:center; gap:10px }
-  .logo{ width:34px; height:34px; border-radius:10px; background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--accent)); box-shadow: inset 0 0 0 2px rgba(255,255,255,.06)}
-  .title{ display:flex; flex-direction:column }
-  .title h1{ margin:0; font-size:16px }
-  .title .sub{ margin:2px 0 0; color:var(--muted); font-size:12px }
+  /* FAQ */
+  .qa{display:grid;gap:10px}
+  .qa .q{border:1px solid var(--stroke);background:#11151e;border-radius:12px;padding:2px 10px}
+  .qa .q summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center;touch-action:manipulation}
+  .qa .q summary::-webkit-details-marker{display:none}
+  .qa .q pre{white-space:pre-wrap;color:var(--muted);margin:8px 0 12px;font-size:14px}
 
-  /* ===== Контентные контейнеры ===== */
-  .page{ display:none }
-  .page.active{ display:block }
-  .container{ max-width:980px; margin:0 auto; padding:14px var(--gap) calc(96px + var(--safe-bottom)) }
-  .card{ background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02)); border:1px solid var(--stroke); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow) }
-  .grid{ display:grid; gap:12px }
-  .block{ border:1px solid var(--stroke); border-radius:16px; background:var(--elev); padding:12px }
-  .list{ display:grid; gap:10px }
-  .row{ display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start }
-  .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-top:8px; box-shadow:0 0 10px var(--accent-2) }
-  .kv{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px }
-  .kv .item{ border:1px solid var(--stroke); border-radius:12px; background:#12141a; padding:10px }
+  /* Bottom nav (3 tabs) */
+  .tabs{position:sticky;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-top:1px solid var(--stroke);padding:8px calc(var(--gap) + var(--safe-left)) calc(8px + var(--safe-bottom)) calc(var(--gap) + var(--safe-right))}
+  .tabbar{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .tabbtn{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:12px;padding:8px 10px;text-align:center;cursor:pointer;font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .tabbtn svg{width:20px;height:20px;opacity:.92}
+  .tabbtn.active{outline:2px solid rgba(124,92,255,.45);box-shadow:var(--glow)}
 
-  .badges{ display:flex; gap:8px; flex-wrap:wrap }
-  .badge{ font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); background:#0f1015aa }
-  .badge.warn{ border-color:rgba(255,209,102,.4); background:rgba(255,209,102,.08) }
-
-  /* ===== Магазин ===== */
-  .shop-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
-  @media (min-width:520px){ .shop-grid{ grid-template-columns:repeat(3,1fr) } }
-  .pack{ position:relative; border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg,#0f1220,#0b0f18); padding:12px; display:flex; flex-direction:column; gap:10px; transition: transform .08s ease }
-  .pack:active{ transform: scale(.98) }
-  .pack h4{ margin:0; font-size:15px }
-  .pack .stars{ font-weight:900; font-size:24px; text-shadow: var(--glow-2) }
-  .pack .price{ color:var(--muted); font-size:12px }
-  .pack .buy{ margin-top:auto; border:1px solid var(--stroke); background:#181c27; color:var(--text); border-radius:12px; padding:12px; font-weight:800; cursor:pointer; text-align:center; min-height:44px }
-  .pack .buy.primary{ outline:2px solid rgba(124,92,255,.45); box-shadow: var(--glow) }
-  .hint{ font-size:12px; color:var(--accent-2) }
-
-  /* ===== Профиль / Объект ===== */
-  .profile{ display:grid; gap:10px }
-  .line{ display:flex; justify-content:space-between; border:1px solid var(--stroke); background:#0f1015; padding:12px; border-radius:12px; min-height:44px; align-items:center }
-  .line .muted{ color:var(--muted) }
-  .obj-grid{ display:grid; gap:10px }
-  .obj{ border:1px solid var(--stroke); background:#10151f; border-radius:12px; padding:12px }
-  .obj h4{ margin:0 0 8px; font-size:14px; opacity:.9 }
-  .obj .kv{ grid-template-columns:repeat(auto-fit,minmax(140px,1fr)) }
-
-  /* ===== История покупок ===== */
-  .history{ display:grid; gap:10px }
-  .hist-row{ display:grid; grid-template-columns:1fr auto; gap:10px; border:1px solid var(--stroke); background:#0f1118; border-radius:12px; padding:12px; align-items:center }
-  .hist-row .meta{ font-size:12px; color:var(--muted) }
-  .hist-empty{ text-align:center; color:var(--muted); padding:18px }
-  .hist-actions{ display:flex; gap:8px; flex-wrap:wrap }
-  .btn{ border:1px solid var(--stroke); background:#1b1c22; color:var(--text); border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer; min-height:44px }
-  .btn.primary{ border-color:rgba(124,92,255,.45); box-shadow: var(--glow) }
-  .btn.warn{ border-color:rgba(255,209,102,.35) }
-  .btn.danger{ border-color:rgba(255,107,129,.35) }
-
-  /* ===== Песочница (canvas) ===== */
-  .canvas-wrap{ position:relative; border:1px solid #0d1420; border-radius:16px; overflow:hidden; background:#000 }
-  canvas{ display:block; width:100%; height:360px }
-  .scene-hint{ position:absolute; right:10px; top:10px; font-size:12px; color:#6cf; background:rgba(8,20,40,.6); padding:6px 10px; border-radius:999px; border:1px solid #153055 }
-
-  /* ===== FAQ ===== */
-  .qa{ display:grid; gap:10px }
-  .qa .q{ border:1px solid var(--stroke); background:#11151e; border-radius:12px; padding:2px 10px }
-  .qa .q summary{ cursor:pointer; font-weight:800; min-height:44px; display:flex; align-items:center; /* фикс баг зума */ touch-action: manipulation }
-  .qa .q summary::-webkit-details-marker{ display:none }
-  .qa .q pre{ white-space:pre-wrap; color:var(--muted); margin:8px 0 12px; font-size:14px }
-
-  /* ===== Bottom nav (скроллится, если вкладок много) ===== */
-  .tabs{ position:sticky; bottom:0; left:0; right:0; z-index:20; background:rgba(0,0,0,.92); backdrop-filter:blur(8px); border-top:1px solid var(--stroke);
-         padding:8px calc(var(--gap) + var(--safe-left)) calc(8px + var(--safe-bottom)) calc(var(--gap) + var(--safe-right)) }
-  .tabbar{ max-width:980px; margin:0 auto; display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory }
-  .tabbtn{ flex:0 0 auto; scroll-snap-align:center; border:1px solid var(--stroke); background:#12151b; color:var(--text); border-radius:12px; padding:8px 10px; text-align:center; cursor:pointer; font-weight:800; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:70px }
-  .tabbtn svg{ width:20px; height:20px; opacity:.92 }
-  .tabbtn.active{ outline:2px solid rgba(124,92,255,.45); box-shadow: var(--glow) }
-
-  /* ===== Тосты ===== */
-  .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(76px + var(--safe-bottom)); z-index:50; display:none }
-  .toast .bubble{ background:rgba(20,24,33,.95); border:1px solid var(--stroke); color:var(--text); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); font-weight:800 }
-  .toast.show{ display:block; animation:toast .2s ease-out }
-  @keyframes toast{ from{ opacity:0; transform:translate(-50%,10px) } to{ opacity:1; transform:translate(-50%,0) } }
-
-  /* ===== Скелетоны ===== */
-  .skel{ position:relative; overflow:hidden; background:#12151a }
-  .skel::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); animation:shine 1.2s infinite }
-  @keyframes shine{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
-
-  /* ===== Микро-анимации и состояния ===== */
-  .btn:active{ transform: translateY(1px) }
-  .chip:active{ transform: translateY(1px) }
-  .appear{ animation: appear .18s ease-out }
-  @keyframes appear{ from{ opacity:0; transform: translateY(6px) } to{ opacity:1; transform:none } }
-
-  /* Уважение к настройке «уменьшение движения» */
-  @media (prefers-reduced-motion:reduce){
-    .toast{ animation: none }
-    .appear{ animation:none }
-  }
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + var(--safe-bottom));z-index:50;display:none}
+  .toast .bubble{background:rgba(20,24,33,.95);border:1px solid var(--stroke);color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);font-weight:800}
+  .toast.show{display:block;animation:toast .2s ease-out}
+  @keyframes toast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  .appear{animation:appear .18s ease-out}
+  @keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.toast{animation:none}.appear{animation:none}}
   </style>
 </head>
 <body>
 <div class="app" id="app">
-  <!-- ======================== HEADER ======================== -->
   <header class="header">
     <div class="header-wrap">
       <div class="logo" aria-hidden="true"></div>
       <div class="title">
         <h1>Qleweta — Мини‑апп</h1>
-        <p class="sub">Версия 2.0 · обновлено сегодня</p>
+        <p class="sub">Бета · аккуратно улучшаем · обновления выходят время от времени</p>
       </div>
     </div>
   </header>
 
-  <!-- ======================== CONTENT PAGES ======================== -->
   <main id="pages">
-    <!-- ===== PAGE: STATUS ===== -->
+    <!-- ===== STATUS ===== -->
     <section class="page active" id="page-status" aria-labelledby="tab-status">
       <div class="container">
         <div class="card appear">
           <div class="badges" style="justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <span class="badge warn">Production</span>
-              <span class="badge" id="badgeVer">Версия: 2.0</span>
-              <span class="badge" id="badgeUpd">Обновлено: сегодня</span>
+              <span class="badge warn">Beta</span>
+              <span class="badge">Версия: 3.0</span>
+              <span class="badge" id="badgeClient">Client: —</span>
             </div>
-            <div class="badge" id="badgeClient">Client: —</div>
           </div>
-
           <div class="grid">
             <div class="block">
-              <h3>Что уже работает</h3>
-              <div class="list" id="worksList">
-                <div class="row"><div class="dot"></div><div>Мобильная адаптация: bottom‑nav, safe‑area, крупные интерактивы.</div></div>
-                <div class="row"><div class="dot"></div><div>Глубокая интеграция с Telegram WebApp API: MainButton/BackButton, Haptics, Theme.</div></div>
-                <div class="row"><div class="dot"></div><div>Магазин Stars: <code>sendData("buy_XX")</code> → мгновенный возврат в чат.</div></div>
-                <div class="row"><div class="dot"></div><div>История покупок: локальное/облачное хранение, экспорт/импорт, очистка.</div></div>
-                <div class="row"><div class="dot"></div><div>Плитка «Объект»: полная сводка (юзер, премиум, платформа, тема, версия и т.п.).</div></div>
-                <div class="row"><div class="dot"></div><div>Тосты, скелетоны, оффлайн‑детект, перформанс, анти‑dbltap зум в FAQ.</div></div>
-              </div>
+              <h3>Коротко</h3>
+              <p class="muted" style="margin:8px 0 0">Это публичная бета. Возможны баги, микро‑задержки и доработки без предупреждения. Мы не несем ответственности за действия пользователей и сторонние сервисы. Используя мини‑апп, вы подтверждаете согласие с этими условиями.</p>
             </div>
-
             <div class="block">
-              <h3>Дорожная карта</h3>
-              <div class="kv">
-                <div class="item"><b>История с сервера</b><br><span class="muted">интеграция с бэкендом/ботом</span></div>
-                <div class="item"><b>Промокоды</b><br><span class="muted">ввод прямо в аппе</span></div>
-                <div class="item"><b>Рефералы</b><br><span class="muted">генерация ссылок</span></div>
-                <div class="item"><b>Темы Glow/Neon</b><br><span class="muted">ручной выбор</span></div>
-              </div>
-            </div>
-
-            <div class="block">
-              <h3>Чейнджлог 2.0</h3>
-              <div class="list">
-                <div class="row"><div class="dot"></div><div>Удалён перевод: один язык (RU), меньше кода — больше стабильности.</div></div>
-                <div class="row"><div class="dot"></div><div>Полноценная «История покупок»: CloudStorage/LocalStorage, экспорт/импорт JSON.</div></div>
-                <div class="row"><div class="dot"></div><div>Плитка «Объект» показывает ключевые поля initDataUnsafe, цветовую схему, платформу.</div></div>
-                <div class="row"><div class="dot"></div><div>FAQ исправлен: жесты без масштабирования; summary с <code>touch-action: manipulation</code>.</div></div>
-                <div class="row"><div class="dot"></div><div>Визуал усилен: glow, тени, плавные появления, тактильная отдача.</div></div>
-              </div>
-            </div>
-
-            <div class="block">
-              <h3>Дисклеймер</h3>
-              <div class="list">
-                <div class="row"><div class="dot"></div><div>Оплаты Stars необратимы по правилам Telegram. Действуйте осознанно.</div></div>
-                <div class="row"><div class="dot"></div><div>Мы не отвечаем за сторонние сервисы. Пользуясь аппом, вы соглашаетесь с условиями.</div></div>
-              </div>
+              <h3>Апдейты</h3>
+              <p class="muted" style="margin:8px 0 0">Обновления выкатываются по мере готовности: правим баги, улучшаем UX, добавляем сцены в «Песочнице». Следите за новостями в чате с ботом.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== PAGE: SHOP ===== -->
-    <section class="page" id="page-shop" aria-labelledby="tab-shop">
-      <div class="container">
-        <div class="card appear">
-          <div class="grid">
-            <div class="block">
-              <h3>Магазин Stars</h3>
-              <p class="muted">Выберите пакет — инвойс придёт в чат. Оплата в XTR.</p>
-              <div class="shop-grid" id="shopGrid">
-                <div class="pack" data-amt="5">
-                  <h4>Пакет</h4>
-                  <div class="stars">5⭐</div>
-                  <div class="price">микро‑поддержка</div>
-                  <button class="buy">Купить 5⭐</button>
-                </div>
-                <div class="pack" data-amt="20">
-                  <h4>Пакет</h4>
-                  <div class="stars">20⭐</div>
-                  <div class="price">лучший выбор</div>
-                  <button class="buy primary">Купить 20⭐</button>
-                </div>
-                <div class="pack" data-amt="100">
-                  <h4>Пакет</h4>
-                  <div class="stars">100⭐</div>
-                  <div class="price">сердечно ❤️</div>
-                  <button class="buy">Купить 100⭐</button>
-                </div>
-              </div>
-              <p class="hint">После нажатия возвращаемся в чат. Если счёт не пришёл — повторите.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== PAGE: PROFILE (объект) ===== -->
-    <section class="page" id="page-profile" aria-labelledby="tab-profile">
-      <div class="container">
-        <div class="card appear">
-          <div class="grid profile" id="profileGrid">
-            <div class="line"><span>Пользователь</span><span id="p_name" class="muted">—</span></div>
-            <div class="line"><span>Юзернейм</span><span id="p_username" class="muted">—</span></div>
-            <div class="line"><span>ID</span><span id="p_id" class="muted">—</span></div>
-          </div>
-          <div class="obj" style="margin-top:12px">
-            <h4>Объект</h4>
-            <div class="kv">
-              <div class="item"><b>Премиум</b><br><span class="muted" id="o_premium">—</span></div>
-              <div class="item"><b>Платформа</b><br><span class="muted" id="o_platform">—</span></div>
-              <div class="item"><b>Тема</b><br><span class="muted" id="o_scheme">—</span></div>
-              <div class="item"><b>Версия WebApp</b><br><span class="muted" id="o_version">—</span></div>
-              <div class="item"><b>isExpanded</b><br><span class="muted" id="o_expanded">—</span></div>
-              <div class="item"><b>start_param</b><br><span class="muted" id="o_start">—</span></div>
-              <div class="item"><b>chat_type</b><br><span class="muted" id="o_chat">—</span></div>
-              <div class="item"><b>viewport</b><br><span class="muted" id="o_view">—</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== PAGE: HISTORY ===== -->
-    <section class="page" id="page-history" aria-labelledby="tab-history">
-      <div class="container">
-        <div class="card appear">
-          <div class="grid">
-            <div class="block">
-              <h3>История покупок</h3>
-              <p class="muted" id="histSub">Показываются покупки, оформленные через мини‑апп на этом устройстве. Если доступно — храним в Telegram CloudStorage, иначе — в LocalStorage.</p>
-              <div class="history" id="histList"><div class="hist-empty">Пока пусто. Оформите покупку в «Магазине».</div></div>
-              <div class="hist-actions" style="margin-top:10px">
-                <button class="btn" id="btnExport">Экспорт JSON</button>
-                <button class="btn" id="btnImport">Импорт JSON</button>
-                <button class="btn warn" id="btnSync">Синхронизировать</button>
-                <button class="btn danger" id="btnClear">Очистить</button>
-              </div>
-              <p class="hint">Для серверной истории свяжите бота: по нажатию «Синхронизировать» отправляем <code>sendData("history:sync")</code>.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== PAGE: SANDBOX ===== -->
+    <!-- ===== SANDBOX ===== -->
     <section class="page" id="page-sandbox" aria-labelledby="tab-sandbox">
       <div class="container">
         <div class="card appear">
-          <div class="grid">
-            <div class="block">
-              <h3>Песочница</h3>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px">
-                <button class="chip btn" data-scene="gpt">🤖 ChatGPT Scene</button>
-                <button class="chip btn" data-scene="eyes">👀 Eyes</button>
-                <button class="chip btn" data-scene="parts">✨ Particles</button>
-              </div>
+          <div class="block">
+            <h3>Песочница (7 режимов)</h3>
+            <div class="chips" id="sceneChips">
+              <button class="chip active" data-scene="eyes">👀 Eyes</button>
+              <button class="chip" data-scene="parts">✨ Particles</button>
+              <button class="chip" data-scene="kaleido">🔶 Kaleidoscope</button>
+              <button class="chip" data-scene="rings">⭕ Neon Rings</button>
+              <button class="chip" data-scene="starfield">🌌 Starfield</button>
+              <button class="chip" data-scene="plasma">🌈 Plasma</button>
+              <button class="chip" data-scene="waves">〰️ Waves</button>
+            </div>
 
-              <!-- GPT Scene -->
-              <div class="canvas-wrap scene" id="scene-gpt">
-                <canvas id="chat"></canvas>
-                <div class="scene-hint">тапни/кликни по экрану</div>
-                <div class="chatlayer" id="chatLayer" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#00ffd0;text-shadow:0 0 8px #00ffaa;white-space:pre-line;font-family:ui-monospace,monospace">
-                  <div>
-                    <div id="l1" style="font-size:18px"></div>
-                    <div id="l2" style="font-size:18px"></div>
-                  </div>
-                </div>
-                <div class="crt" style="position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04),rgba(255,255,255,.04) 1px,transparent 2px,transparent 3px);opacity:.06"></div>
-              </div>
-
-              <!-- Eyes Scene -->
-              <div class="canvas-wrap scene" id="scene-eyes" style="display:none">
-                <canvas id="eyes"></canvas>
-                <div class="scene-hint">тапни по глазу — случайный цвет</div>
-              </div>
-
-              <!-- Parts Scene -->
-              <div class="canvas-wrap scene" id="scene-parts" style="display:none">
-                <canvas id="parts"></canvas>
-                <div class="scene-hint">тап — спавн частиц • курсор притягивает</div>
-              </div>
+            <!-- Canvas host -->
+            <div class="canvas-wrap scene" id="sceneHost">
+              <canvas id="canvas"></canvas>
+              <div class="scene-hint">тап — интеракция/цвет</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== PAGE: FAQ ===== -->
+    <!-- ===== FAQ ===== -->
     <section class="page" id="page-faq" aria-labelledby="tab-faq">
       <div class="container">
         <div class="card appear">
@@ -380,20 +146,16 @@
             <div class="block">
               <h3>FAQ</h3>
               <div class="qa" id="faqList">
-                <details class="q"><summary>Как вернуться в бота?</summary><pre>Нажмите системную стрелку назад в Telegram или кнопку «Закрыть» (MainButton).
-Если MainButton активен — он тоже закрывает WebApp.</pre></details>
-                <details class="q"><summary>Почему кнопка не прислала счёт?</summary><pre>Иногда клиент задерживает возврат. Проверьте чат и попробуйте ещё раз. Если не помогло — перезапустите диалог с ботом.</pre></details>
-                <details class="q"><summary>Где посмотреть историю?</summary><pre>Вкладка «История» ведёт локальную (или облачную) историю покупок из мини‑аппа. Для полной серверной истории — подключите бота.</pre></details>
-                <details class="q"><summary>Где мой баланс?</summary><pre>Баланс звёзд — в профиле бота → Balance (Stars), или командой /balance (если настроено).</pre></details>
+                <details class="q"><summary>Как вернуться в бота?</summary><pre>Нажмите системную «Назад» в Telegram или кнопку «Закрыть» (MainButton) — она всегда активна.</pre></details>
+                <details class="q"><summary>Почему иногда «подлагивает»?</summary><pre>Мы в бете. Приоритет — стабильность. На слабых устройствах плотные анимации автоматически упрощаются.</pre></details>
+                <details class="q"><summary>Что делает «Песочница»?</summary><pre>Это набор визуальных сцен на Canvas. Жмите/водите пальцем — будет интеракция, всплески, смена цвета.</pre></details>
+                <details class="q"><summary>Масштабирование при нажатии исчезло?</summary><pre>Да. В мобильном Safari отключён dbl‑tap zoom и обработку тапов мы делаем без зума (touch-action: manipulation).</pre></details>
+                <details class="q"><summary>Аватарки и баланс?</summary><pre>Аватарки не тянем по приватности/CORS. Баланс/платежи — в телеграм‑боте.</pre></details>
               </div>
             </div>
             <div class="block">
-              <h3>Отладка</h3>
-              <div class="list">
-                <div class="row"><div class="dot"></div><div>Идентификатор клиента: <code id="dbgClient">—</code></div></div>
-                <div class="row"><div class="dot"></div><div>ThemeParams: <code id="dbgTheme">—</code></div></div>
-                <div class="row"><div class="dot"></div><div>isExpanded: <code id="dbgExp">—</code></div></div>
-              </div>
+              <h3>Диагностика</h3>
+              <div class="badges"><span class="badge" id="dbgClient">client: —</span><span class="badge" id="dbgScheme">scheme: —</span><span class="badge" id="dbgVer">webapp: —</span></div>
             </div>
           </div>
         </div>
@@ -401,24 +163,11 @@
     </section>
   </main>
 
-  <!-- ======================== BOTTOM NAV (6 вкладок) ======================== -->
-  <nav class="tabs" aria-label="Основная навигация">
+  <nav class="tabs" aria-label="Навигация">
     <div class="tabbar">
       <button class="tabbtn active" id="tab-status" data-page="page-status" aria-controls="page-status" aria-selected="true" title="Статус">
         <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="currentColor" stroke-width="2"/><path d="M4 6h10" stroke="currentColor" stroke-width="2"/><path d="M4 18h12" stroke="currentColor" stroke-width="2"/></svg>
         <span>Статус</span>
-      </button>
-      <button class="tabbtn" id="tab-shop" data-page="page-shop" aria-controls="page-shop" title="Магазин">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M3 7h18l-1 12H4L3 7Z" stroke="currentColor" stroke-width="2"/><path d="M7 7V5a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2"/></svg>
-        <span>Магазин</span>
-      </button>
-      <button class="tabbtn" id="tab-profile" data-page="page-profile" aria-controls="page-profile" title="Профиль">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c2-4 6-6 8-6s6 2 8 6" stroke="currentColor" stroke-width="2"/></svg>
-        <span>Профиль</span>
-      </button>
-      <button class="tabbtn" id="tab-history" data-page="page-history" aria-controls="page-history" title="История">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/><path d="M3 12a9 9 0 1 0 9-9" stroke="currentColor" stroke-width="2"/><path d="M3 5v7h7" stroke="currentColor" stroke-width="2"/></svg>
-        <span>История</span>
       </button>
       <button class="tabbtn" id="tab-sandbox" data-page="page-sandbox" aria-controls="page-sandbox" title="Песочница">
         <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2"/></svg>
@@ -432,301 +181,126 @@
   </nav>
 </div>
 
-<!-- ======================== TOAST ======================== -->
 <div class="toast" id="toast" role="status" aria-live="polite"><div class="bubble" id="toastText">—</div></div>
 
 <script>
 /* ====================================================================
-   QLEWETA MINI‑APP — MOBILE PRO v2 JS (Production)
-   --------------------------------------------------------------------
-   Без переводов, только RU. Здесь: роутер, история, сцены, тема, FAQ‑фикс,
-   интеграция с Telegram WebApp API. Код снабжен комментариями для поддержки.
+   QLEWETA MINI‑APP — JS
+   3 страницы, 7 сцен. Старт/стоп сцен при переключении. Haptics, Theme.
    ==================================================================== */
 (function(){
   'use strict';
-
-  // ----------------------- Глобальное состояние -----------------------
   const S = {
-    version: '2.0',
     tg: (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null,
-    scenes: { gpt: null, eyes: null, parts: null },
-    currentPage: 'page-status',
+    page: 'page-status',
     haptics: true,
-    offline: !navigator.onLine,
-    histKey: 'qleweta:history',         // ключ для LocalStorage
-    histCloudPrefix: 'qleweta:hist:',   // префикс для CloudStorage (если доступен)
-    userId: null,
-    dblTapBlockMs: 320,                 // анти dbl‑tap zoom для FAQ
-    lastTouchTime: 0,
+    scenes: {},
+    activeScene: null,
+    lastTouch: 0,
   };
+  const $ = q=>document.querySelector(q); const $$=q=>Array.from(document.querySelectorAll(q));
+  const on=(el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt);
+  function haptic(type='light'){ if(!S.haptics) return; try{ S.tg?.HapticFeedback?.impactOccurred(type);}catch(e){} }
+  function toast(msg){ const box=$('#toast'); const t=$('#toastText'); if(!box||!t) return; t.textContent=msg; box.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>box.classList.remove('show'),1600);} 
+  function applyTheme(){ if(!S.tg) return; const th=S.tg.themeParams||{}; const map={text_color:'--text',hint_color:'--muted',bg_color:'--bg',secondary_bg_color:'--card',link_color:'--accent2',button_color:'--accent'}; for(const k in map){ if(th[k]) document.documentElement.style.setProperty(map[k], th[k]); } $('#dbgScheme').textContent='scheme: '+(S.tg.colorScheme||'—'); $('#dbgVer').textContent='webapp: '+(S.tg.version||'—'); }
+  function fillClient(){ const c=S.tg?.platform||'web'; $('#badgeClient').textContent='Client: '+c; $('#dbgClient').textContent='client: '+c; }
+  function setPage(id){ if(S.page===id) return; $$('.page').forEach(p=>p.classList.toggle('active',p.id===id)); $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id)); S.page=id; if(id!=='page-sandbox'){ stopScene(); } try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){} }
+  function updateMainButton(){ if(!S.tg) return; S.tg.MainButton.setParams({text:'Закрыть'}); S.tg.MainButton.show(); S.tg.MainButton.onClick(()=>{ try{S.tg.close()}catch(e){} }); }
 
-  // ----------------------- Утилиты -----------------------
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const on = (el, ev, fn, opt) => el && el.addEventListener(ev, fn, opt);
+  // ================== SCENE ENGINE ==================
+  function stopScene(){ if(!S.activeScene) return; try{ S.activeScene.stop && S.activeScene.stop(); }catch(e){} S.activeScene=null; }
+  function startScene(name){ const host=$('#canvas'); if(!host) return; if(S.activeScene && S.activeScene.name===name) return; stopScene(); if(!S.scenes[name]){ S.scenes[name]=SceneFactory(name, host); } S.activeScene=S.scenes[name]; S.activeScene.start(); }
 
-  function toast(msg){
-    const box=$('#toast'); const txt=$('#toastText');
-    if(!box||!txt) return; txt.textContent=msg; box.classList.add('show');
-    if(S.haptics) try{ S.tg?.HapticFeedback?.notificationOccurred('success'); }catch(e){}
-    clearTimeout(toast._t); toast._t=setTimeout(()=> box.classList.remove('show'), 1800);
-  }
+  function SceneFactory(name, canvas){
+    const ctx=canvas.getContext('2d'); let W=0,H=0,dpr=1,raf=0,started=false; let hue=200; let tapBoost=0; let mouse={x:0,y:0,active:false};
+    function resize(){ const box=canvas.parentElement; W=box.clientWidth; H=380; dpr=Math.max(1,Math.min(2,devicePixelRatio||1)); canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); }
+    function bind(){ const r=canvas.getBoundingClientRect.bind(canvas); const set=(e)=>{ const b=r(); const p=('touches'in e)?e.touches[0]:e; mouse.x=p.clientX-b.left; mouse.y=p.clientY-b.top; mouse.active=true; }; const clr=()=>{mouse.active=false}; on(canvas,'mousemove',set); on(canvas,'mouseleave',clr); on(canvas,'touchstart',e=>{e.preventDefault(); set(e); tap();},{passive:false}); on(canvas,'touchmove',e=>{e.preventDefault(); set(e)},{passive:false}); on(window,'touchend',clr); on(canvas,'click',()=>{ tap(); }); }
+    function tap(){ hue=(hue+60)%360; tapBoost=1; haptic('medium'); }
 
-  function setActivePage(id){
-    if(S.currentPage===id) return;
-    $$('.page').forEach(p=>p.classList.toggle('active', p.id===id));
-    $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id));
-    S.currentPage = id;
-    updateMainButton();
-    stopScenesExcept(id);
-    try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
-  }
+    // ====== EYES ======
+    function startEyes(){ let eyes=[{x:W*0.38,y:H*0.5,r:62, iris:`hsl(${hue},90%,60%)`},{x:W*0.62,y:H*0.5,r:62, iris:`hsl(${(hue+40)%360},90%,60%)`}];
+      const drawEye=e=>{ const {x,y,r,iris}=e; ctx.shadowBlur=18; ctx.shadowColor='rgba(180,200,255,.35)'; ctx.fillStyle='#0b0f18'; ctx.strokeStyle='#2a2f3a'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); const dx=(mouse.x||W/2)-x, dy=(mouse.y||H/2)-y, dist=Math.hypot(dx,dy), lim=r*0.45; const px=x+(dist>lim?dx/dist*lim:dx), py=y+(dist>lim?dy/dist*lim:dy); ctx.shadowBlur=20; ctx.shadowColor=iris; ctx.fillStyle=iris; ctx.beginPath(); ctx.arc(px,py,r*0.36,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#000'; ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(px,py,r*0.18,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(px-r*0.1,py-r*0.1,r*0.06,0,Math.PI*2); ctx.fill(); };
+      const loop=()=>{ ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); eyes[0].x=W*0.38; eyes[0].y=H*0.5; eyes[1].x=W*0.62; eyes[1].y=H*0.5; eyes[0].iris=`hsl(${hue},90%,60%)`; eyes[1].iris=`hsl(${(hue+40)%360},90%,60%)`; drawEye(eyes[0]); drawEye(eyes[1]); raf=requestAnimationFrame(loop); }; loop(); return ()=>cancelAnimationFrame(raf); }
 
-  function stopScenesExcept(id){
-    const stop = name => { if(S.scenes[name] && typeof S.scenes[name].stop==='function') S.scenes[name].stop(); };
-    if(id!=='page-sandbox'){ stop('gpt'); stop('eyes'); stop('parts'); }
-  }
+    // ====== PARTICLES ======
+    function startParticles(){ const P=[]; const spawn=(x,y,n=16)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2; const v=40+Math.random()*140; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:2+Math.random()*3,h:(Math.random()*360)|0,life:2}); } }; spawn(W/2,H/2,28); let last=performance.now();
+      const loop=(now)=>{ const dt=Math.min(40,now-last)/1000; last=now; ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(0,0,W,H); for(const p of P){ if(mouse.active){ const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.hypot(dx,dy)+1; const f=120/d; p.vx+=dx/d*f*dt; p.vy+=dy/d*f*dt; } p.vx*=0.99; p.vy*=0.99; p.x+=p.vx*dt; p.y+=p.vy*dt; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; p.life-=dt*0.25; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${p.h},100%,60%,.9)`; ctx.fillStyle=`hsla(${p.h},95%,60%,.9)`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1); raf=requestAnimationFrame(loop); };
+      on(canvas,'click',e=>{ const r=canvas.getBoundingClientRect(); const x=e.clientX-r.left,y=e.clientY-r.top; spawn(x,y,20); }); raf=requestAnimationFrame(loop); return ()=>cancelAnimationFrame(raf); }
 
-  function haptic(type='light'){ if(!S.haptics) return; try{ S.tg?.HapticFeedback?.impactOccurred(type); }catch(e){} }
-  function closeApp(){ try{ S.tg?.close(); }catch(e){} }
-
-  // ----------------------- Тема из Telegram -----------------------
-  function applyThemeFromTelegram(){
-    if(!S.tg) return;
-    const th = S.tg.themeParams||{};
-    const map={ text_color:'--text', hint_color:'--muted', bg_color:'--bg', secondary_bg_color:'--card', link_color:'--accent-2', button_color:'--accent', button_text_color:'--text' };
-    for(const k in map){ if(th[k]) document.documentElement.style.setProperty(map[k], th[k]); }
-  }
-
-  // ----------------------- Offline detector -----------------------
-  function updateOffline(){
-    if(!navigator.onLine){ S.offline=true; toast('⚠️ Нет сети'); }
-    else if(S.offline){ S.offline=false; toast('✅ Сеть есть'); }
-  }
-
-  // ----------------------- Профиль / Объект -----------------------
-  function fillProfile(){
-    const unsafe = S.tg?.initDataUnsafe||{}; const user=unsafe.user||{};
-    S.userId = user.id||null;
-    $('#p_name').textContent = [user.first_name,user.last_name].filter(Boolean).join(' ')||'—';
-    $('#p_username').textContent = user.username?('@'+user.username):'—';
-    $('#p_id').textContent = user.id||'—';
-
-    const client = `${S.tg?.platform||'web'}`; $('#badgeClient').textContent = 'Client: '+client; $('#dbgClient').textContent = client; $('#o_platform').textContent = client;
-    $('#o_premium').textContent = user.is_premium ? 'да' : 'нет';
-    $('#o_scheme').textContent = S.tg?.colorScheme||'—';
-    $('#o_version').textContent = S.tg?.version||'—';
-    $('#o_expanded').textContent = S.tg?.isExpanded?'true':'false';
-    $('#o_start').textContent = unsafe.start_param||'—';
-    $('#o_chat').textContent = unsafe.chat_type||'—';
-    $('#dbgTheme').textContent = JSON.stringify(S.tg?.themeParams||{},null,0);
-    $('#dbgExp').textContent = S.tg?.isExpanded?'true':'false';
-
-    const vw = Math.round(window.innerWidth) + '×' + Math.round(window.innerHeight);
-    $('#o_view').textContent = vw;
-  }
-
-  // ----------------------- Магазин: покупки и история -----------------------
-  let buyLock = false;
-  function buyStars(amount){
-    if(buyLock) return; buyLock = true; setTimeout(()=> buyLock=false, 1200);
-    haptic('rigid');
-    try{
-      S.tg?.sendData?.('buy_'+amount);
-      toast('Запрос на '+amount+'⭐ отправлен');
-      // Сохраняем в историю предзапись (статус pending), чтобы юзер видел действие.
-      pushHistory({ ts: Date.now(), amount, status:'pending', payload:'order_'+amount });
-      renderHistory();
-      setTimeout(()=> closeApp(), 220);
-    }catch(e){ toast('Не удалось отправить'); }
-  }
-
-  // ===== История: хранение =====
-  function hasCloud(){ return !!(S.tg && S.tg.CloudStorage && typeof S.tg.CloudStorage.setItem==='function'); }
-  function cloudKey(){ return S.userId ? (S.histCloudPrefix + S.userId) : S.histKey; }
-
-  async function loadHistory(){
-    try{
-      if(hasCloud()){
-        const json = await S.tg.CloudStorage.getItem(cloudKey());
-        if(json){ return JSON.parse(json); }
-      }
-    }catch(e){ /* fallback ниже */ }
-    try{
-      const json = localStorage.getItem(S.histKey); if(json) return JSON.parse(json);
-    }catch(e){ /* ignore */ }
-    return [];
-  }
-
-  async function saveHistory(list){
-    const json = JSON.stringify(list.slice(-200)); // ограничим размер
-    try{ if(hasCloud()) await S.tg.CloudStorage.setItem(cloudKey(), json); }catch(e){ /* fallback */ }
-    try{ localStorage.setItem(S.histKey, json); }catch(e){ /* ignore */ }
-  }
-
-  async function pushHistory(item){ const list = await loadHistory(); list.push(item); await saveHistory(list); }
-  async function clearHistory(){ await saveHistory([]); }
-
-  // ===== История: рендер =====
-  async function renderHistory(){
-    const box = $('#histList'); if(!box) return;
-    const list = await loadHistory();
-    if(!list || list.length===0){ box.innerHTML = '<div class="hist-empty">Пока пусто. Оформите покупку в «Магазине».</div>'; return; }
-    box.innerHTML = '';
-    // Последние сверху
-    list.slice().reverse().forEach(ev=>{
-      const dt = new Date(ev.ts||Date.now());
-      const dstr = dt.toLocaleString();
-      const row = document.createElement('div'); row.className = 'hist-row';
-      const left = document.createElement('div');
-      const right = document.createElement('div');
-      left.innerHTML = '<b>'+ (ev.amount||'?') +'⭐</b><div class="meta">'+(ev.payload||'—')+'</div>';
-      right.innerHTML = '<div style="text-align:right"><div>'+ (ev.status||'—') +'</div><div class="meta">'+ dstr +'</div></div>';
-      row.appendChild(left); row.appendChild(right);
-      box.appendChild(row);
-    });
-  }
-
-  // ===== История: экспорт/импорт/синк =====
-  function exportHistory(){
-    loadHistory().then(list=>{
-      const blob = new Blob([JSON.stringify(list,null,2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='qleweta-history.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
-      toast('Экспортирован JSON');
-    });
-  }
-
-  function importHistory(){
-    const input = document.createElement('input'); input.type = 'file'; input.accept = 'application/json';
-    input.onchange = async () => {
-      const f = input.files && input.files[0]; if(!f) return;
-      const text = await f.text();
-      try{ const list = JSON.parse(text); if(Array.isArray(list)){ await saveHistory(list); toast('Импортирован JSON'); renderHistory(); } else { toast('Неверный формат'); } }
-      catch(e){ toast('Ошибка импорта'); }
-    };
-    input.click();
-  }
-
-  function syncHistory(){
-    // Простой протокол: просим бота синхронизировать — он может прислать историю в чат или
-    // в будущем обновить CloudStorage от своего имени (когда у вас будет бэкенд/бот‑обработчик).
-    try{ S.tg?.sendData?.('history:sync'); toast('Запрос синхронизации отправлен'); }
-    catch(e){ toast('Не удалось отправить'); }
-  }
-
-  // ----------------------- Сцены (canvas) -----------------------
-  function SceneGPT(){
-    let canvas,ctx,raf=0,started=false,clickBound=false,t=0;
-    return {
-      start(){ if(started) return; started=true; canvas=$('#chat'); ctx=canvas.getContext('2d');
-        const resize=()=>{ const box=canvas.parentElement,W=box.clientWidth,H=360; const dpr=window.devicePixelRatio||1; canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);};
-        this._resize=resize; resize(); window.addEventListener('resize',resize);
-        const loop=()=>{ t+=0.015; const W=canvas.width/(window.devicePixelRatio||1), H=canvas.height/(window.devicePixelRatio||1);
-          const r=60+Math.sin(t)*25,R=360; const gx=W/2+Math.sin(t*0.7)*40, gy=H/2+Math.cos(t*0.6)*24; const g=ctx.createRadialGradient(gx,gy,r,W/2,H/2,R);
-          g.addColorStop(0,'rgba(0,255,210,0.32)'); g.addColorStop(0.45,'rgba(0,140,200,0.15)'); g.addColorStop(1,'rgba(0,0,0,1)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-          raf=requestAnimationFrame(loop);
-        }; loop();
-        const l1=$('#l1'), l2=$('#l2');
-        const type=(el,txt,spd=22,done)=>{ el.textContent=''; let i=0; const tick=()=>{ if(i<txt.length){ el.textContent+=txt[i++]; if(i%3===0) haptic('light'); setTimeout(tick,spd);} else done&&done(); }; tick(); };
-        type(l1,'👋 Привет! Я ChatGPT. Нажми на экран — отвечу',18);
-        if(!clickBound){ clickBound=true; const trigger=()=>{ l1.textContent='Ответ:'; type(l2,'Ахахах 😆 ну ты чё, поверил?\nAPI дорогие сейчас, бро 💸',14); }; on($('#scene-gpt'),'click',trigger,{passive:true}); on($('#scene-gpt'),'touchstart',e=>{e.preventDefault();trigger();},{passive:false}); }
-      },
-      stop(){ if(!started) return; started=false; cancelAnimationFrame(raf); window.removeEventListener('resize',this._resize); }
-    }
-  }
-
-  function SceneEyes(){
-    let canvas,ctx,raf=0,started=false,eyes=[],mx=0,my=0,active=false,dpr=1,W=0,H=0;
-    return {
-      start(){ if(started) return; started=true; canvas=$('#eyes'); ctx=canvas.getContext('2d');
-        const resize=()=>{ const box=canvas.parentElement; W=box.clientWidth; H=360; dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1)); canvas.width=W*dpr;canvas.height=H*dpr; canvas.style.width=W+'px';canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); eyes=[{x:W*0.38,y:H*0.5,r:62,iris:'#66ccff'},{x:W*0.62,y:H*0.5,r:62,iris:'#66ccff'}]; mx=W/2; my=H/2; };
-        this._resize=resize; resize(); window.addEventListener('resize',resize);
-        const setMouse=e=>{ const r=canvas.getBoundingClientRect(); const p=('touches'in e)?e.touches[0]:e; mx=p.clientX-r.left; my=p.clientY-r.top; active=true; };
-        const clearMouse=()=>{ active=false; };
-        on(canvas,'mousemove',setMouse); on(canvas,'mouseleave',clearMouse); on(canvas,'touchstart',setMouse,{passive:false}); on(canvas,'touchmove',setMouse,{passive:false}); on(window,'touchend',clearMouse);
-        on(canvas,'click',e=>{ const r=canvas.getBoundingClientRect(); const x=e.clientX-r.left,y=e.clientY-r.top; for(const eye of eyes){ if(Math.hypot(x-eye.x,y-eye.y)<=eye.r) eye.iris=`hsl(${(Math.random()*360)|0},90%,60%)`; } });
-        const drawEye=eye=>{ const {x,y,r,iris}=eye; ctx.shadowBlur=18; ctx.shadowColor='rgba(180,200,255,.35)'; ctx.fillStyle='#0b0f18'; ctx.strokeStyle='#2a2f3a'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); const dx=mx-x, dy=my-y, dist=Math.hypot(dx,dy); const lim=r*0.45; const px=x+(dist>lim?dx/dist*lim:dx); const py=y+(dist>lim?dy/dist*lim:dy); ctx.shadowBlur=20; ctx.shadowColor=iris; ctx.fillStyle=iris; ctx.beginPath(); ctx.arc(px,py,r*0.36,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#000'; ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(px,py,r*0.18,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(px-r*0.1,py-r*0.1,r*0.06,0,Math.PI*2); ctx.fill(); };
-        const loop=()=>{ ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); eyes[0].x=W*0.38; eyes[0].y=H*0.5; eyes[1].x=W*0.62; eyes[1].y=H*0.5; for(const e of eyes) drawEye(e); raf=requestAnimationFrame(loop); };
-        loop();
-      },
-      stop(){ if(!started) return; started=false; cancelAnimationFrame(raf); window.removeEventListener('resize',this._resize); }
-    }
-  }
-
-  function SceneParts(){
-    let canvas,ctx,raf=0,started=false,P=[],mx=0,my=0,active=false,dpr=1,W=0,H=0,last=0;
-    const spawn=(x,y,n=16)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2; const v=40+Math.random()*140; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:2+Math.random()*3,h:(Math.random()*360)|0,life:2}); } };
-    return {
-      start(){ if(started) return; started=true; canvas=$('#parts'); ctx=canvas.getContext('2d');
-        const resize=()=>{ const box=canvas.parentElement; W=box.clientWidth; H=360; dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1)); canvas.width=W*dpr;canvas.height=H*dpr; canvas.style.width=W+'px';canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); };
-        this._resize=resize; resize(); window.addEventListener('resize',resize);
-        const setMouse=e=>{ const r=canvas.getBoundingClientRect(); const p=('touches'in e)?e.touches[0]:e; mx=p.clientX-r.left; my=p.clientY-r.top; active=true; };
-        const clearMouse=()=>{ active=false; };
-        on(canvas,'mousemove',setMouse); on(canvas,'mouseleave',clearMouse); on(canvas,'touchstart',setMouse,{passive:false}); on(canvas,'touchmove',setMouse,{passive:false}); on(window,'touchend',clearMouse);
-        on(canvas,'click',e=>{ const r=canvas.getBoundingClientRect(); spawn(e.clientX-r.left,e.clientY-r.top,20); haptic('medium'); });
-        spawn(W/2,H/2,28); last=performance.now();
-        const loop=(now)=>{ const dt=Math.min(40,now-last)/1000; last=now; ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(0,0,W,H); for(const p of P){ if(active){ const dx=mx-p.x, dy=my-p.y, d=Math.hypot(dx,dy)+1; const f=120/d; p.vx+=dx/d*f*dt; p.vy+=dy/d*f*dt; } p.vx*=0.99; p.vy*=0.99; p.x+=p.vx*dt; p.y+=p.vy*dt; if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1; p.life-=dt*0.25; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${p.h},100%,60%,.9)`; ctx.fillStyle=`hsla(${p.h},95%,60%,.9)`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1); raf=requestAnimationFrame(loop); };
+    // ====== KALEIDOSCOPE (glow + center burst) ======
+    function startKaleido(){ let t=0; const N=12; // секторов
+      const loop=()=>{ t+=0.015 + tapBoost*0.05; tapBoost=Math.max(0,tapBoost-0.02); const cx=W/2, cy=H/2; ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+        ctx.save(); ctx.translate(cx,cy);
+        for(let i=0;i<N;i++){
+          ctx.save(); ctx.rotate((i/N)*Math.PI*2 + t*0.2);
+          const grd=ctx.createRadialGradient(0,0,10, 0,0,Math.max(W,H)*0.6);
+          grd.addColorStop(0,`hsla(${(hue+i*10)%360},100%,60%,0.95)`);
+          grd.addColorStop(0.4,`hsla(${(hue+80)%360},100%,50%,0.35)`);
+          grd.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=grd; ctx.globalCompositeOperation='screen';
+          ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,Math.max(W,H), 0, (Math.PI*2)/N); ctx.closePath(); ctx.fill();
+          ctx.restore();
+        }
+        // центр всплеска
+        const pulse = 1 + Math.sin(t*4)*0.08 + tapBoost*0.6;
+        ctx.shadowBlur=40; ctx.shadowColor=`hsla(${(hue+180)%360},100%,60%,.9)`; ctx.fillStyle=`hsla(${(hue+180)%360},100%,60%,.9)`;
+        ctx.beginPath(); ctx.arc(cx,cy, 22*pulse, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
         raf=requestAnimationFrame(loop);
-      },
-      stop(){ if(!started) return; started=false; cancelAnimationFrame(raf); window.removeEventListener('resize',this._resize); }
+      }; loop();
+      on(canvas,'click',()=>{ hue=(hue+45)%360; tapBoost=1; });
+      return ()=>cancelAnimationFrame(raf);
     }
-  }
 
-  // ----------------------- Навигация -----------------------
-  function bindTabs(){ $$('.tabbtn').forEach(btn=> on(btn,'click',()=>{ setActivePage(btn.dataset.page); haptic('light'); })); }
+    // ====== NEON RINGS ======
+    function startRings(){ let t=0; const loop=()=>{ t+=0.02; ctx.clearRect(0,0,W,H); ctx.fillStyle='#05060a'; ctx.fillRect(0,0,W,H); const cx=W/2,cy=H/2; for(let i=0;i<8;i++){ const r=30+i*28 + Math.sin(t+i*.6)*6; ctx.lineWidth=2; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${(hue+i*20)%360},100%,60%,.9)`; ctx.strokeStyle=`hsla(${(hue+i*20)%360},100%,60%,.9)`; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); } raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+30)%360; }); return ()=>cancelAnimationFrame(raf); }
 
-  function bindShop(){ $$('#page-shop .pack .buy').forEach(b=> on(b,'click',()=> buyStars(+b.closest('.pack').dataset.amt))); }
+    // ====== STARFIELD ======
+    function startStarfield(){ const N=180; const stars=[]; for(let i=0;i<N;i++){ stars.push({x:(Math.random()-0.5)*W,y:(Math.random()-0.5)*H,z:Math.random()*W}); } const speed=60; function proj(s){ const f=200/(s.z+1); return {x:W/2+s.x*f, y:H/2+s.y*f}; }
+      const loop=(now)=>{ ctx.fillStyle='rgba(0,0,10,0.4)'; ctx.fillRect(0,0,W,H); for(const s of stars){ s.z-=1.2; if(s.z<1){ s.x=(Math.random()-0.5)*W; s.y=(Math.random()-0.5)*H; s.z=W; } const p=proj(s); ctx.fillStyle=`hsla(${hue},100%,70%,.9)`; ctx.fillRect(p.x,p.y, 2,2); } raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop); on(canvas,'click',()=>{ hue=(hue+50)%360; }); return ()=>cancelAnimationFrame(raf); }
 
-  function bindSandbox(){
-    const chips=$$('#page-sandbox .chip');
-    const show=id=>{
-      $('#scene-gpt').style.display= id==='gpt'?'':'none';
-      $('#scene-eyes').style.display= id==='eyes'?'':'none';
-      $('#scene-parts').style.display= id==='parts'?'':'none';
-      chips.forEach(c=>c.classList.toggle('active', c.dataset.scene===id));
-      if(id==='gpt'){ S.scenes.gpt||(S.scenes.gpt=SceneGPT()); S.scenes.gpt.start(); }
-      if(id==='eyes'){ S.scenes.eyes||(S.scenes.eyes=SceneEyes()); S.scenes.eyes.start(); }
-      if(id==='parts'){ S.scenes.parts||(S.scenes.parts=SceneParts()); S.scenes.parts.start(); }
+    // ====== PLASMA (синус‑градиент) ======
+    function startPlasma(){ let t=0; const img=ctx.createImageData(W,H); const data=img.data; const loop=()=>{ t+=0.03; let i=0; for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ const v=Math.sin(x*0.02+t)+Math.sin(y*0.02-t)+Math.sin((x+y)*0.015); const c=(v+3)/6; const Hh=(hue+Math.floor(c*180))%360; const [r,g,b]=hsl2rgb(Hh/360,1,0.5); data[i++]=r; data[i++]=g; data[i++]=b; data[i++]=255; } } ctx.putImageData(img,0,0); raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+40)%360; }); return ()=>cancelAnimationFrame(raf); }
+
+    // ====== WAVES ======
+    function startWaves(){ let t=0; const loop=()=>{ t+=0.02; ctx.clearRect(0,0,W,H); const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,`hsl(${hue},80%,12%)`); grd.addColorStop(1,'#000'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H); ctx.lineWidth=2; for(let k=0;k<5;k++){ const amp=12+k*6; const spd=0.02+k*0.01; ctx.beginPath(); for(let x=0;x<=W;x+=6){ const y=H*0.5 + Math.sin(x*0.02 + t*(2+spd)+k)*amp; if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.strokeStyle=`hsla(${(hue+k*15)%360},100%,60%,.7)`; ctx.shadowBlur=12; ctx.shadowColor=ctx.strokeStyle; ctx.stroke(); } raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+35)%360; }); return ()=>cancelAnimationFrame(raf); }
+
+    // ===== Helpers =====
+    function hsl2rgb(h,s,l){ let r,g,b; if(s===0){ r=g=b=l; } else { const hue2rgb=(p,q,t)=>{ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; }; const q=l<0.5? l*(1+s): l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);} return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
+
+    // public API
+    return {
+      name,
+      start(){ if(started) return; started=true; resize(); bind(); window.addEventListener('resize',resize);
+        let killer=()=>{}; switch(name){
+          case 'eyes': killer=startEyes(); break;
+          case 'parts': killer=startParticles(); break;
+          case 'kaleido': killer=startKaleido(); break;
+          case 'rings': killer=startRings(); break;
+          case 'starfield': killer=startStarfield(); break;
+          case 'plasma': killer=startPlasma(); break;
+          case 'waves': killer=startWaves(); break;
+        }
+        this._stop=()=>{ cancelAnimationFrame(raf); killer&&killer(); };
+      },
+      stop(){ if(!started) return; started=false; try{ this._stop&&this._stop(); }catch(e){} window.removeEventListener('resize',resize); }
     };
-    chips.forEach(c=> on(c,'click',()=>{ show(c.dataset.scene); haptic('light'); }));
-    show('gpt');
   }
 
-  function bindHistory(){
-    on($('#btnExport'),'click',()=>{ exportHistory(); haptic('light'); });
-    on($('#btnImport'),'click',()=>{ importHistory(); haptic('light'); });
-    on($('#btnClear'),'click',async()=>{ await clearHistory(); renderHistory(); toast('История очищена'); haptic('light'); });
-    on($('#btnSync'),'click',()=>{ syncHistory(); haptic('light'); });
-    renderHistory();
-  }
+  // ================== INIT ==================
+  function bindTabs(){ $$('.tabbtn').forEach(b=> on(b,'click',()=>{ setPage(b.dataset.page); haptic('light'); })); }
+  function setPage(id){ setPage._=setPage._||((id)=>{}); setPage._(id); }
+  setPage._=(id)=>{ if(S.page===id) return; $$('.page').forEach(p=>p.classList.toggle('active',p.id===id)); $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id)); S.page=id; if(id!=='page-sandbox'){ stopScene(); } try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){} };
 
-  // ----------------------- Anti dbl‑tap zoom для FAQ -----------------------
-  function bindFAQZoomFix(){
-    // uSafari иногда масштабирует при двойном тапе по summary; отлавливаем быстрые двойные касания
-    on($('#faqList'),'touchend',(e)=>{
-      const now = Date.now();
-      if(now - S.lastTouchTime < S.dblTapBlockMs){ e.preventDefault(); /* блокируем zoom */ }
-      S.lastTouchTime = now;
-    }, {passive:false});
-  }
+  function bindSandbox(){ const chips=$$('#sceneChips .chip'); chips.forEach(c=> on(c,'click',()=>{ chips.forEach(x=>x.classList.remove('active')); c.classList.add('active'); startScene(c.dataset.scene); haptic('light'); })); startScene('eyes'); }
 
-  // ----------------------- MainButton -----------------------
-  function updateMainButton(){
-    if(!S.tg) return;
-    S.tg.MainButton.setParams({text:'Закрыть'});
-    S.tg.MainButton.show();
-    S.tg.MainButton.onClick(closeApp);
-  }
+  function startScene(name){ startScene._=startScene._||((name)=>{}); startScene._(name);} 
+  startScene._=(name)=>{ const canvas=$('#canvas'); if(!canvas) return; if(S.activeScene && S.activeScene.name===name) return; if(S.activeScene) { try{S.activeScene.stop()}catch(e){} } if(!S.scenes[name]){ S.scenes[name]=SceneFactory(name, canvas);} S.activeScene=S.scenes[name]; S.activeScene.start(); };
 
-  // ----------------------- Инициализация -----------------------
-  function init(){
-    applyThemeFromTelegram();
-    bindTabs(); bindShop(); bindSandbox(); bindHistory(); bindFAQZoomFix();
-    fillProfile(); updateOffline();
-    on(window,'online',updateOffline); on(window,'offline',updateOffline);
-    if(S.tg){ S.tg.ready(); S.tg.expand(); S.tg.BackButton.onClick(closeApp); }
-  }
+  function stopScene(){ if(S.activeScene){ try{S.activeScene.stop()}catch(e){} S.activeScene=null; } }
+
+  function attachNav(){ on($('#tab-status'),'click',()=>setPage('page-status')); on($('#tab-sandbox'),'click',()=>setPage('page-sandbox')); on($('#tab-faq'),'click',()=>setPage('page-faq')); }
+
+  function init(){ applyTheme(); fillClient(); bindTabs(); attachNav(); bindSandbox(); updateMainButton(); if(S.tg){ S.tg.ready(); S.tg.expand(); S.tg.BackButton.onClick(()=>{ try{S.tg.close()}catch(e){} }); } }
 
   document.addEventListener('DOMContentLoaded', init);
 })();
