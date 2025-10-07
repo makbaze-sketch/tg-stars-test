@@ -1,143 +1,176 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Qleweta — Статус · Магазин · Песочница</title>
-<meta name="color-scheme" content="dark light">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-/* =====================================================================
-   QLEWETA MINI‑APP — MOBILE PRO (single file)
-   ---------------------------------------------------------------------
-   Цели:
-   • Сильная мобильная адаптация (iOS/Android, компактные хиты, safe-area)
-   • Интеграция с Telegram WebApp API (MainButton, BackButton, Haptics, theme)
-   • 5 разделов: Статус, Магазин, Профиль, Песочница, FAQ/Справка
-   • Магазин с пакетами Stars → sendData("buy_XX") и мягкий UX закрытия
-   • Чистый дизайн (glass+glow), доступность, плавность, низкий вес
-   • Локализация RU/EN (минимальный переключатель)
-   • Тосты, оффлайн-детект, системные хелперы, логгер
-   • Много комментариев для поддержки и роста (файл >1000 строк)
-   ---------------------------------------------------------------------
-   Технические заметки:
-   • Вёрстка mobile‑first; desktop получает расширенные контейнеры.
-   • CSS‑переменные адаптируются под Telegram themeParams, если доступны.
-   • MainButton используется по контексту (Buy / Close). Есть фикс‑футер.
-   • Все сцены canvas аккуратно выключаются при переключении вкладок.
-   • Никаких внешних зависимостей, только Telegram WebApp SDK.
-   ===================================================================== */
+  <meta charset="utf-8"/>
+  <!-- Полностью мобильная адаптация; запрещаем зум, учитываем safe-area -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>Qleweta — Мини‑апп (Production)</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+  /* =====================================================================
+     QLEWETA MINI‑APP — MOBILE PRO v2 (Production‑ready, single file)
+     ---------------------------------------------------------------------
+     Цели этой версии:
+       • Убрать перевод — один базовый язык (RU). Все строки статичны.
+       • Максимально адаптировать под смартфоны: bottom‑nav, крупные хиты,
+         safe‑area, перформанс, плавные анимации (с учётом reduced‑motion).
+       • Полноценная «История покупок»: локальное/облачное хранение с
+         экспортом/импортом, очисткой и подсказками по интеграции.
+       • Полная переработка плитки «Объект»: показываем ключевые поля из
+         initDataUnsafe (премиум, платформа, тема, версия и т.п.).
+       • Исправить баг FAQ: при тапе не должно случаться масштабирование.
+       • Усилить визуал и микровзаимодействия, но без лишней тяжести.
 
-:root{
-  --bg:#05060a;            /* базовый фон */
-  --card:#0c0f15;          /* фон карточек */
-  --elev:#0d1117;          /* фон приподнятых блоков */
-  --stroke:#1e2632;        /* окантовка/разделители */
-  --text:#E8ECF3;          /* основной текст */
-  --muted:#A8AAB6;         /* вторичный текст */
-  --accent:#7C5CFF;        /* фиолетовый */
-  --accent2:#00D1FF;       /* циан */
-  --ok:#73FFBF;            /* успех */
-  --warn:#FFD166;          /* предупреждение */
-  --danger:#ff6b81;        /* ошибка */
-  --shadow:0 10px 30px rgba(0,0,0,.35);
-  --radius:18px;           /* общий радиус */
-  --gap:12px;              /* базовый отступ */
-  --safe-top: env(safe-area-inset-top);      /* iOS Notch */
-  --safe-right: env(safe-area-inset-right);
-  --safe-bottom: env(safe-area-inset-bottom);
-  --safe-left: env(safe-area-inset-left);
-}
+     Файл намеренно «толстый» (>1000 строк) с развернутыми комментариями,
+     чтобы поддержку и развитие было делать комфортно.
+  ====================================================================== */
 
-/* System reset / mobile tweaks */
-*{box-sizing:border-box}
-html,body{height:100%;}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation;}
+  :root{
+    /* Базовая тёмная палитра; часть переменных затем синхронизируем с Telegram themeParams */
+    --bg:#070910;            /* фон страницы */
+    --card:#0c1018;          /* фон карточек */
+    --elev:#0f131c;          /* фон поднятых блоков */
+    --stroke:#1e2633;        /* разделители */
+    --text:#e9edf6;          /* основной текст */
+    --muted:#9aa3b2;         /* вторичный текст */
+    --accent:#7C5CFF;        /* фиолетовый */
+    --accent-2:#00D1FF;      /* циан */
+    --ok:#73FFBF;            /* успех */
+    --warn:#FFD166;          /* предупреждение */
+    --danger:#ff6b81;        /* ошибка */
+    --shadow:0 12px 40px rgba(0,0,0,.36);
+    --radius:18px;           /* общий радиус */
+    --gap:12px;              /* базовый отступ */
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
 
-/* Layout */
-.app{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;}
-.header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(0,0,0,.8),rgba(0,0,0,.45));backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--stroke);padding:calc(10px + var(--safe-top)) var(--gap) 10px;}
-.header-wrap{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px;}
-.logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));box-shadow:0 0 0 2px rgba(255,255,255,.06) inset}
-.title{display:flex;flex-direction:column}
-.title h1{margin:0;font-size:16px}
-.title .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
+    /* Акценты/свечение */
+    --glow: 0 0 22px rgba(124,92,255,.38), 0 0 44px rgba(124,92,255,.18);
+    --glow-2: 0 0 18px rgba(0,209,255,.35);
+  }
 
-.lang{margin-left:auto;display:flex;gap:6px}
-.lang .chip{font-size:12px;border:1px solid var(--stroke);padding:6px 10px;border-radius:999px;background:#0f1015aa;cursor:pointer}
-.lang .chip.active{outline:2px solid rgba(124,92,255,.45)}
+  /* ===== Сброс и мобильные твики ===== */
+  *{ box-sizing:border-box }
+  html, body{ height:100% }
+  html{ scroll-behavior:smooth; -webkit-text-size-adjust: 100% }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    -webkit-tap-highlight-color: transparent; /* убираем синий блюр при тапе */
+    touch-action: manipulation;               /* убираем задержку 300ms и dbl‑tap zoom */
+  }
 
-/* Tabs (bottom nav on mobile) */
-.tabs{position:sticky;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-top:1px solid var(--stroke);
-  padding:8px calc(var(--gap) + var(--safe-left)) calc(8px + var(--safe-bottom)) calc(var(--gap) + var(--safe-right));}
-.tabbar{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.tabbtn{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;
-  font-weight:700;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.tabbtn svg{width:20px;height:20px;opacity:.92}
-.tabbtn.active{outline:2px solid rgba(124,92,255,.45)}
+  /* ===== Каркас ===== */
+  .app{ min-height:100%; display:grid; grid-template-rows:auto 1fr auto }
 
-/* Content */
-.page{display:none}
-.page.active{display:block}
-.container{max-width:980px;margin:0 auto;padding:14px var(--gap) calc(90px + var(--safe-bottom))}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--stroke);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
-.block{border:1px solid var(--stroke);border-radius:16px;background:var(--elev);padding:12px}
-.grid{display:grid;gap:12px}
-.list{display:grid;gap:10px}
-.row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);margin-top:8px;box-shadow:0 0 10px var(--accent2)}
-.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.kv .item{border:1px solid var(--stroke);border-radius:12px;background:#12141a;padding:10px}
-.badges{display:flex;gap:8px;flex-wrap:wrap}
-.badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa}
-.badge.warn{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}
+  .header{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,.5));
+    border-bottom:1px solid var(--stroke);
+    padding:calc(10px + var(--safe-top)) var(--gap) 10px;
+    backdrop-filter: blur(8px);
+  }
+  .header-wrap{ max-width:980px; margin:0 auto; display:flex; align-items:center; gap:10px }
+  .logo{ width:34px; height:34px; border-radius:10px; background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--accent)); box-shadow: inset 0 0 0 2px rgba(255,255,255,.06)}
+  .title{ display:flex; flex-direction:column }
+  .title h1{ margin:0; font-size:16px }
+  .title .sub{ margin:2px 0 0; color:var(--muted); font-size:12px }
 
-/* Shop */
-.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media (min-width:520px){.shop-grid{grid-template-columns:repeat(3,1fr)}}
-.pack{position:relative;border:1px solid var(--stroke);border-radius:16px;background:linear-gradient(180deg,#0f1220,#0b0f18);padding:12px;display:flex;flex-direction:column;gap:10px}
-.pack h4{margin:0;font-size:15px}
-.pack .stars{font-weight:900;font-size:24px}
-.pack .price{color:var(--muted);font-size:12px}
-.pack .buy{margin-top:auto;border:1px solid var(--stroke);background:#181c27;color:var(--text);border-radius:12px;padding:10px;font-weight:800;cursor:pointer;text-align:center}
-.pack .buy.primary{outline:2px solid rgba(124,92,255,.45)}
-.hint{font-size:12px;color:var(--accent2)}
+  /* ===== Контентные контейнеры ===== */
+  .page{ display:none }
+  .page.active{ display:block }
+  .container{ max-width:980px; margin:0 auto; padding:14px var(--gap) calc(96px + var(--safe-bottom)) }
+  .card{ background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02)); border:1px solid var(--stroke); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow) }
+  .grid{ display:grid; gap:12px }
+  .block{ border:1px solid var(--stroke); border-radius:16px; background:var(--elev); padding:12px }
+  .list{ display:grid; gap:10px }
+  .row{ display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-top:8px; box-shadow:0 0 10px var(--accent-2) }
+  .kv{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px }
+  .kv .item{ border:1px solid var(--stroke); border-radius:12px; background:#12141a; padding:10px }
 
-/* Profile */
-.profile{display:grid;gap:10px}
-.profile .line{display:flex;justify-content:space-between;border:1px solid var(--stroke);background:#0f1015;padding:10px;border-radius:12px}
+  .badges{ display:flex; gap:8px; flex-wrap:wrap }
+  .badge{ font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); background:#0f1015aa }
+  .badge.warn{ border-color:rgba(255,209,102,.4); background:rgba(255,209,102,.08) }
 
-/* Canvas scenes */
-.canvas-wrap{position:relative;border:1px solid #0d1420;border-radius:16px;overflow:hidden;background:#000}
-canvas{display:block;width:100%;height:360px}
-.scene-hint{position:absolute;right:10px;top:10px;font-size:12px;color:#6cf;background:rgba(8,20,40,.6);padding:6px 10px;border-radius:999px;border:1px solid #153055}
+  /* ===== Магазин ===== */
+  .shop-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px }
+  @media (min-width:520px){ .shop-grid{ grid-template-columns:repeat(3,1fr) } }
+  .pack{ position:relative; border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg,#0f1220,#0b0f18); padding:12px; display:flex; flex-direction:column; gap:10px; transition: transform .08s ease }
+  .pack:active{ transform: scale(.98) }
+  .pack h4{ margin:0; font-size:15px }
+  .pack .stars{ font-weight:900; font-size:24px; text-shadow: var(--glow-2) }
+  .pack .price{ color:var(--muted); font-size:12px }
+  .pack .buy{ margin-top:auto; border:1px solid var(--stroke); background:#181c27; color:var(--text); border-radius:12px; padding:12px; font-weight:800; cursor:pointer; text-align:center; min-height:44px }
+  .pack .buy.primary{ outline:2px solid rgba(124,92,255,.45); box-shadow: var(--glow) }
+  .hint{ font-size:12px; color:var(--accent-2) }
 
-/* FAQ */
-.qa{display:grid;gap:10px}
-.qa .q{border:1px solid var(--stroke);background:#11151e;border-radius:12px;padding:10px}
-.qa .q summary{cursor:pointer;font-weight:800}
-.qa .q summary::-webkit-details-marker{display:none}
-.qa .q pre{white-space:pre-wrap;color:var(--muted);margin:8px 0 0}
+  /* ===== Профиль / Объект ===== */
+  .profile{ display:grid; gap:10px }
+  .line{ display:flex; justify-content:space-between; border:1px solid var(--stroke); background:#0f1015; padding:12px; border-radius:12px; min-height:44px; align-items:center }
+  .line .muted{ color:var(--muted) }
+  .obj-grid{ display:grid; gap:10px }
+  .obj{ border:1px solid var(--stroke); background:#10151f; border-radius:12px; padding:12px }
+  .obj h4{ margin:0 0 8px; font-size:14px; opacity:.9 }
+  .obj .kv{ grid-template-columns:repeat(auto-fit,minmax(140px,1fr)) }
 
-/* Toasts */
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + var(--safe-bottom));z-index:50;display:none}
-.toast .bubble{background:rgba(20,24,33,.95);border:1px solid var(--stroke);color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);font-weight:700}
-.toast.show{display:block;animation:toast .2s ease-out}
-@keyframes toast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  /* ===== История покупок ===== */
+  .history{ display:grid; gap:10px }
+  .hist-row{ display:grid; grid-template-columns:1fr auto; gap:10px; border:1px solid var(--stroke); background:#0f1118; border-radius:12px; padding:12px; align-items:center }
+  .hist-row .meta{ font-size:12px; color:var(--muted) }
+  .hist-empty{ text-align:center; color:var(--muted); padding:18px }
+  .hist-actions{ display:flex; gap:8px; flex-wrap:wrap }
+  .btn{ border:1px solid var(--stroke); background:#1b1c22; color:var(--text); border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer; min-height:44px }
+  .btn.primary{ border-color:rgba(124,92,255,.45); box-shadow: var(--glow) }
+  .btn.warn{ border-color:rgba(255,209,102,.35) }
+  .btn.danger{ border-color:rgba(255,107,129,.35) }
 
-/* Skeletons */
-.skel{position:relative;overflow:hidden;background:#12151a}
-.skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:shine 1.2s infinite}
-@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+  /* ===== Песочница (canvas) ===== */
+  .canvas-wrap{ position:relative; border:1px solid #0d1420; border-radius:16px; overflow:hidden; background:#000 }
+  canvas{ display:block; width:100%; height:360px }
+  .scene-hint{ position:absolute; right:10px; top:10px; font-size:12px; color:#6cf; background:rgba(8,20,40,.6); padding:6px 10px; border-radius:999px; border:1px solid #153055 }
 
-/* Accessibility: reduced motion */
-@media (prefers-reduced-motion:reduce){
-  .toast{animation:none}
-}
-</style>
+  /* ===== FAQ ===== */
+  .qa{ display:grid; gap:10px }
+  .qa .q{ border:1px solid var(--stroke); background:#11151e; border-radius:12px; padding:2px 10px }
+  .qa .q summary{ cursor:pointer; font-weight:800; min-height:44px; display:flex; align-items:center; /* фикс баг зума */ touch-action: manipulation }
+  .qa .q summary::-webkit-details-marker{ display:none }
+  .qa .q pre{ white-space:pre-wrap; color:var(--muted); margin:8px 0 12px; font-size:14px }
+
+  /* ===== Bottom nav (скроллится, если вкладок много) ===== */
+  .tabs{ position:sticky; bottom:0; left:0; right:0; z-index:20; background:rgba(0,0,0,.92); backdrop-filter:blur(8px); border-top:1px solid var(--stroke);
+         padding:8px calc(var(--gap) + var(--safe-left)) calc(8px + var(--safe-bottom)) calc(var(--gap) + var(--safe-right)) }
+  .tabbar{ max-width:980px; margin:0 auto; display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory }
+  .tabbtn{ flex:0 0 auto; scroll-snap-align:center; border:1px solid var(--stroke); background:#12151b; color:var(--text); border-radius:12px; padding:8px 10px; text-align:center; cursor:pointer; font-weight:800; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:70px }
+  .tabbtn svg{ width:20px; height:20px; opacity:.92 }
+  .tabbtn.active{ outline:2px solid rgba(124,92,255,.45); box-shadow: var(--glow) }
+
+  /* ===== Тосты ===== */
+  .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(76px + var(--safe-bottom)); z-index:50; display:none }
+  .toast .bubble{ background:rgba(20,24,33,.95); border:1px solid var(--stroke); color:var(--text); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); font-weight:800 }
+  .toast.show{ display:block; animation:toast .2s ease-out }
+  @keyframes toast{ from{ opacity:0; transform:translate(-50%,10px) } to{ opacity:1; transform:translate(-50%,0) } }
+
+  /* ===== Скелетоны ===== */
+  .skel{ position:relative; overflow:hidden; background:#12151a }
+  .skel::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); animation:shine 1.2s infinite }
+  @keyframes shine{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
+
+  /* ===== Микро-анимации и состояния ===== */
+  .btn:active{ transform: translateY(1px) }
+  .chip:active{ transform: translateY(1px) }
+  .appear{ animation: appear .18s ease-out }
+  @keyframes appear{ from{ opacity:0; transform: translateY(6px) } to{ opacity:1; transform:none } }
+
+  /* Уважение к настройке «уменьшение движения» */
+  @media (prefers-reduced-motion:reduce){
+    .toast{ animation: none }
+    .appear{ animation:none }
+  }
+  </style>
 </head>
 <body>
 <div class="app" id="app">
@@ -146,26 +179,22 @@ canvas{display:block;width:100%;height:360px}
     <div class="header-wrap">
       <div class="logo" aria-hidden="true"></div>
       <div class="title">
-        <h1 id="appTitle">Qleweta — Мини‑апп</h1>
-        <p class="sub" id="subtitle">Версия 1.0 · обновлено сегодня</p>
-      </div>
-      <div class="lang" role="tablist" aria-label="Language switcher">
-        <div class="chip active" data-lang="ru" role="tab" aria-selected="true">RU</div>
-        <div class="chip" data-lang="en" role="tab" aria-selected="false">EN</div>
+        <h1>Qleweta — Мини‑апп</h1>
+        <p class="sub">Версия 2.0 · обновлено сегодня</p>
       </div>
     </div>
   </header>
 
-  <!-- ======================== PAGES ======================== -->
+  <!-- ======================== CONTENT PAGES ======================== -->
   <main id="pages">
     <!-- ===== PAGE: STATUS ===== -->
     <section class="page active" id="page-status" aria-labelledby="tab-status">
       <div class="container">
-        <div class="card">
+        <div class="card appear">
           <div class="badges" style="justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <span class="badge warn" id="badgeBeta">Beta</span>
-              <span class="badge" id="badgeVer">Версия: 1.0</span>
+              <span class="badge warn">Production</span>
+              <span class="badge" id="badgeVer">Версия: 2.0</span>
               <span class="badge" id="badgeUpd">Обновлено: сегодня</span>
             </div>
             <div class="badge" id="badgeClient">Client: —</div>
@@ -173,35 +202,35 @@ canvas{display:block;width:100%;height:360px}
 
           <div class="grid">
             <div class="block">
-              <h3 id="st-works">Что уже работает</h3>
+              <h3>Что уже работает</h3>
               <div class="list" id="worksList">
-                <div class="row"><div class="dot"></div><div>Адаптив под мобилы: safe‑area, крупные хиты, bottom‑nav.</div></div>
-                <div class="row"><div class="dot"></div><div>Глубокая интеграция с Telegram API: MainButton/BackButton, Haptics, Theme.</div></div>
-                <div class="row"><div class="dot"></div><div>Магазин пакетов Stars → <code>sendData("buy_XX")</code> → инвойс в чате.</div></div>
-                <div class="row"><div class="dot"></div><div>Профиль на базе initDataUnsafe (имя/юзернейм).</div></div>
-                <div class="row"><div class="dot"></div><div>Тосты, оффлайн‑детект, skeleton‑лоадеры, локализация RU/EN.</div></div>
-                <div class="row"><div class="dot"></div><div>Сцены canvas оптимизированы: стоп/старт при переключении вкладок.</div></div>
+                <div class="row"><div class="dot"></div><div>Мобильная адаптация: bottom‑nav, safe‑area, крупные интерактивы.</div></div>
+                <div class="row"><div class="dot"></div><div>Глубокая интеграция с Telegram WebApp API: MainButton/BackButton, Haptics, Theme.</div></div>
+                <div class="row"><div class="dot"></div><div>Магазин Stars: <code>sendData("buy_XX")</code> → мгновенный возврат в чат.</div></div>
+                <div class="row"><div class="dot"></div><div>История покупок: локальное/облачное хранение, экспорт/импорт, очистка.</div></div>
+                <div class="row"><div class="dot"></div><div>Плитка «Объект»: полная сводка (юзер, премиум, платформа, тема, версия и т.п.).</div></div>
+                <div class="row"><div class="dot"></div><div>Тосты, скелетоны, оффлайн‑детект, перформанс, анти‑dbltap зум в FAQ.</div></div>
               </div>
             </div>
 
             <div class="block">
               <h3>Дорожная карта</h3>
               <div class="kv">
-                <div class="item"><b>История покупок</b><br><span class="muted">выгрузка из бота</span></div>
-                <div class="item"><b>Промокоды</b><br><span class="muted">активация из мини‑аппа</span></div>
-                <div class="item"><b>Темизация</b><br><span class="muted">ручной выбор тем</span></div>
+                <div class="item"><b>История с сервера</b><br><span class="muted">интеграция с бэкендом/ботом</span></div>
+                <div class="item"><b>Промокоды</b><br><span class="muted">ввод прямо в аппе</span></div>
                 <div class="item"><b>Рефералы</b><br><span class="muted">генерация ссылок</span></div>
+                <div class="item"><b>Темы Glow/Neon</b><br><span class="muted">ручной выбор</span></div>
               </div>
             </div>
 
             <div class="block">
-              <h3>Чейнджлог 1.0</h3>
+              <h3>Чейнджлог 2.0</h3>
               <div class="list">
-                <div class="row"><div class="dot"></div><div>Полная мобильная адаптация + bottom‑nav на 5 вкладок.</div></div>
-                <div class="row"><div class="dot"></div><div>Theme sync с Telegram: авто‑цвета светлая/тёмная.</div></div>
-                <div class="row"><div class="dot"></div><div>Новый магазин: карточки 5/20/100⭐ с Haptic Feedback.</div></div>
-                <div class="row"><div class="dot"></div><div>MainButton по контексту (Buy / Close).</div></div>
-                <div class="row"><div class="dot"></div><div>Тосты, оффлайн‑режим, локализация RU/EN, to‑top плавно.</div></div>
+                <div class="row"><div class="dot"></div><div>Удалён перевод: один язык (RU), меньше кода — больше стабильности.</div></div>
+                <div class="row"><div class="dot"></div><div>Полноценная «История покупок»: CloudStorage/LocalStorage, экспорт/импорт JSON.</div></div>
+                <div class="row"><div class="dot"></div><div>Плитка «Объект» показывает ключевые поля initDataUnsafe, цветовую схему, платформу.</div></div>
+                <div class="row"><div class="dot"></div><div>FAQ исправлен: жесты без масштабирования; summary с <code>touch-action: manipulation</code>.</div></div>
+                <div class="row"><div class="dot"></div><div>Визуал усилен: glow, тени, плавные появления, тактильная отдача.</div></div>
               </div>
             </div>
 
@@ -220,13 +249,12 @@ canvas{display:block;width:100%;height:360px}
     <!-- ===== PAGE: SHOP ===== -->
     <section class="page" id="page-shop" aria-labelledby="tab-shop">
       <div class="container">
-        <div class="card">
+        <div class="card appear">
           <div class="grid">
             <div class="block">
-              <h3 id="shopTitle">Магазин Stars</h3>
-              <p class="muted" id="shopSub">Выберите пакет — инвойс придёт в чат. Звёзды XTR.</p>
+              <h3>Магазин Stars</h3>
+              <p class="muted">Выберите пакет — инвойс придёт в чат. Оплата в XTR.</p>
               <div class="shop-grid" id="shopGrid">
-                <!-- Пакеты; кнопки навешиваются из JS, чтобы локализация работала одинаково -->
                 <div class="pack" data-amt="5">
                   <h4>Пакет</h4>
                   <div class="stars">5⭐</div>
@@ -246,29 +274,56 @@ canvas{display:block;width:100%;height:360px}
                   <button class="buy">Купить 100⭐</button>
                 </div>
               </div>
-              <p class="hint" id="shopHint">После нажатия мы вернёмся в чат. Если счёт не пришёл — повторите.</p>
-            </div>
-
-            <div class="block">
-              <h3>Ответы на частые вопросы</h3>
-              <details class="q"><summary>Что такое Stars (XTR)?</summary><pre>Это валюта Telegram. Покупаете в боте — звёзды уходят на баланс бота.</pre></details>
-              <details class="q"><summary>Где посмотреть покупки?</summary><pre>В чате бота: профиль «ℹ️ Инфо» показывает сумму и уровень.</pre></details>
-              <details class="q"><summary>Платёж не пришёл?</summary><pre>Откройте чат с ботом — иногда клиент задерживает возврат из мини‑аппа. Попробуйте ещё раз.</pre></details>
+              <p class="hint">После нажатия возвращаемся в чат. Если счёт не пришёл — повторите.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== PAGE: PROFILE ===== -->
+    <!-- ===== PAGE: PROFILE (объект) ===== -->
     <section class="page" id="page-profile" aria-labelledby="tab-profile">
       <div class="container">
-        <div class="card">
+        <div class="card appear">
           <div class="grid profile" id="profileGrid">
             <div class="line"><span>Пользователь</span><span id="p_name" class="muted">—</span></div>
             <div class="line"><span>Юзернейм</span><span id="p_username" class="muted">—</span></div>
             <div class="line"><span>ID</span><span id="p_id" class="muted">—</span></div>
-            <div class="line"><span>Клиент</span><span id="p_client" class="muted">—</span></div>
+          </div>
+          <div class="obj" style="margin-top:12px">
+            <h4>Объект</h4>
+            <div class="kv">
+              <div class="item"><b>Премиум</b><br><span class="muted" id="o_premium">—</span></div>
+              <div class="item"><b>Платформа</b><br><span class="muted" id="o_platform">—</span></div>
+              <div class="item"><b>Тема</b><br><span class="muted" id="o_scheme">—</span></div>
+              <div class="item"><b>Версия WebApp</b><br><span class="muted" id="o_version">—</span></div>
+              <div class="item"><b>isExpanded</b><br><span class="muted" id="o_expanded">—</span></div>
+              <div class="item"><b>start_param</b><br><span class="muted" id="o_start">—</span></div>
+              <div class="item"><b>chat_type</b><br><span class="muted" id="o_chat">—</span></div>
+              <div class="item"><b>viewport</b><br><span class="muted" id="o_view">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PAGE: HISTORY ===== -->
+    <section class="page" id="page-history" aria-labelledby="tab-history">
+      <div class="container">
+        <div class="card appear">
+          <div class="grid">
+            <div class="block">
+              <h3>История покупок</h3>
+              <p class="muted" id="histSub">Показываются покупки, оформленные через мини‑апп на этом устройстве. Если доступно — храним в Telegram CloudStorage, иначе — в LocalStorage.</p>
+              <div class="history" id="histList"><div class="hist-empty">Пока пусто. Оформите покупку в «Магазине».</div></div>
+              <div class="hist-actions" style="margin-top:10px">
+                <button class="btn" id="btnExport">Экспорт JSON</button>
+                <button class="btn" id="btnImport">Импорт JSON</button>
+                <button class="btn warn" id="btnSync">Синхронизировать</button>
+                <button class="btn danger" id="btnClear">Очистить</button>
+              </div>
+              <p class="hint">Для серверной истории свяжите бота: по нажатию «Синхронизировать» отправляем <code>sendData("history:sync")</code>.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -277,14 +332,14 @@ canvas{display:block;width:100%;height:360px}
     <!-- ===== PAGE: SANDBOX ===== -->
     <section class="page" id="page-sandbox" aria-labelledby="tab-sandbox">
       <div class="container">
-        <div class="card">
+        <div class="card appear">
           <div class="grid">
             <div class="block">
               <h3>Песочница</h3>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px">
-                <button class="chip" data-scene="gpt">🤖 ChatGPT Scene</button>
-                <button class="chip" data-scene="eyes">👀 Eyes</button>
-                <button class="chip" data-scene="parts">✨ Particles</button>
+                <button class="chip btn" data-scene="gpt">🤖 ChatGPT Scene</button>
+                <button class="chip btn" data-scene="eyes">👀 Eyes</button>
+                <button class="chip btn" data-scene="parts">✨ Particles</button>
               </div>
 
               <!-- GPT Scene -->
@@ -320,16 +375,16 @@ canvas{display:block;width:100%;height:360px}
     <!-- ===== PAGE: FAQ ===== -->
     <section class="page" id="page-faq" aria-labelledby="tab-faq">
       <div class="container">
-        <div class="card">
+        <div class="card appear">
           <div class="grid">
             <div class="block">
               <h3>FAQ</h3>
               <div class="qa" id="faqList">
-                <details class="q"><summary>Как вернуться в бота?</summary><pre>Нажмите системную стрелку назад в Telegram или кнопку «Закрыть» внизу.
+                <details class="q"><summary>Как вернуться в бота?</summary><pre>Нажмите системную стрелку назад в Telegram или кнопку «Закрыть» (MainButton).
 Если MainButton активен — он тоже закрывает WebApp.</pre></details>
                 <details class="q"><summary>Почему кнопка не прислала счёт?</summary><pre>Иногда клиент задерживает возврат. Проверьте чат и попробуйте ещё раз. Если не помогло — перезапустите диалог с ботом.</pre></details>
-                <details class="q"><summary>Как сменить язык?</summary><pre>В правом верхнем углу переключатель RU/EN. Контент обновится сразу.</pre></details>
-                <details class="q"><summary>Где моя аватарка и баланс?</summary><pre>По соображениям приватности и CORS аватарку напрямую не тянем. Баланс отображается внутри бота.</pre></details>
+                <details class="q"><summary>Где посмотреть историю?</summary><pre>Вкладка «История» ведёт локальную (или облачную) историю покупок из мини‑аппа. Для полной серверной истории — подключите бота.</pre></details>
+                <details class="q"><summary>Где мой баланс?</summary><pre>Баланс звёзд — в профиле бота → Balance (Stars), или командой /balance (если настроено).</pre></details>
               </div>
             </div>
             <div class="block">
@@ -346,7 +401,7 @@ canvas{display:block;width:100%;height:360px}
     </section>
   </main>
 
-  <!-- ======================== BOTTOM NAV ======================== -->
+  <!-- ======================== BOTTOM NAV (6 вкладок) ======================== -->
   <nav class="tabs" aria-label="Основная навигация">
     <div class="tabbar">
       <button class="tabbtn active" id="tab-status" data-page="page-status" aria-controls="page-status" aria-selected="true" title="Статус">
@@ -360,6 +415,10 @@ canvas{display:block;width:100%;height:360px}
       <button class="tabbtn" id="tab-profile" data-page="page-profile" aria-controls="page-profile" title="Профиль">
         <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c2-4 6-6 8-6s6 2 8 6" stroke="currentColor" stroke-width="2"/></svg>
         <span>Профиль</span>
+      </button>
+      <button class="tabbtn" id="tab-history" data-page="page-history" aria-controls="page-history" title="История">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/><path d="M3 12a9 9 0 1 0 9-9" stroke="currentColor" stroke-width="2"/><path d="M3 5v7h7" stroke="currentColor" stroke-width="2"/></svg>
+        <span>История</span>
       </button>
       <button class="tabbtn" id="tab-sandbox" data-page="page-sandbox" aria-controls="page-sandbox" title="Песочница">
         <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2"/></svg>
@@ -377,52 +436,31 @@ canvas{display:block;width:100%;height:360px}
 <div class="toast" id="toast" role="status" aria-live="polite"><div class="bubble" id="toastText">—</div></div>
 
 <script>
-// ====================================================================
-// QLEWETA MINI‑APP — MOBILE PRO JS
-// --------------------------------------------------------------------
-// Здесь много комментов и мелких хелперов — читаемость важнее лаконичности.
-// ====================================================================
+/* ====================================================================
+   QLEWETA MINI‑APP — MOBILE PRO v2 JS (Production)
+   --------------------------------------------------------------------
+   Без переводов, только RU. Здесь: роутер, история, сцены, тема, FAQ‑фикс,
+   интеграция с Telegram WebApp API. Код снабжен комментариями для поддержки.
+   ==================================================================== */
 (function(){
   'use strict';
 
-  // ----------------------- Global state -----------------------
+  // ----------------------- Глобальное состояние -----------------------
   const S = {
-    version: '1.0',
-    lang: 'ru',
+    version: '2.0',
     tg: (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null,
     scenes: { gpt: null, eyes: null, parts: null },
     currentPage: 'page-status',
     haptics: true,
     offline: !navigator.onLine,
+    histKey: 'qleweta:history',         // ключ для LocalStorage
+    histCloudPrefix: 'qleweta:hist:',   // префикс для CloudStorage (если доступен)
+    userId: null,
+    dblTapBlockMs: 320,                 // анти dbl‑tap zoom для FAQ
+    lastTouchTime: 0,
   };
 
-  // ----------------------- i18n -----------------------
-  const T = {
-    ru: {
-      title: 'Qleweta — Мини‑апп',
-      updated: 'обновлено сегодня',
-      status: 'Статус', shop: 'Магазин', profile: 'Профиль', sandbox: 'Песочница', faq: 'FAQ',
-      shopTitle: 'Магазин Stars', shopSub: 'Выберите пакет — инвойс придёт в чат. Звёзды XTR.',
-      shopHint: 'После нажатия мы вернёмся в чат. Если счёт не пришёл — повторите.',
-      buy: amt => `Купить ${amt}⭐`,
-      toastBuy: amt => `Запрос на ${amt}⭐ отправлен`,
-      profile: { user:'Пользователь', username:'Юзернейм', id:'ID', client:'Клиент' },
-      close: 'Закрыть',
-    },
-    en: {
-      title: 'Qleweta — Mini App',
-      updated: 'updated today',
-      status: 'Status', shop: 'Shop', profile: 'Profile', sandbox: 'Sandbox', faq: 'FAQ',
-      shopTitle: 'Stars Shop', shopSub: 'Choose a pack — invoice will appear in chat. XTR stars.',
-      shopHint: 'After press we return to chat. If invoice is missing — try again.',
-      buy: amt => `Buy ${amt}⭐`,
-      toastBuy: amt => `Request for ${amt}⭐ sent`,
-      profile: { user:'User', username:'Username', id:'ID', client:'Client' },
-      close: 'Close',
-    }
-  };
-
-  // ----------------------- Helpers -----------------------
+  // ----------------------- Утилиты -----------------------
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   const on = (el, ev, fn, opt) => el && el.addEventListener(ev, fn, opt);
@@ -440,9 +478,7 @@ canvas{display:block;width:100%;height:360px}
     $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id));
     S.currentPage = id;
     updateMainButton();
-    // останавливаем неактуальные сцены
     stopScenesExcept(id);
-    // прокрутка к началу
     try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
   }
 
@@ -451,50 +487,14 @@ canvas{display:block;width:100%;height:360px}
     if(id!=='page-sandbox'){ stop('gpt'); stop('eyes'); stop('parts'); }
   }
 
-  function updateTexts(){
-    const t=T[S.lang];
-    $('#appTitle').textContent=t.title; $('#subtitle').textContent=`Версия 1.0 · ${t.updated}`;
-    $('#tab-status span').textContent=t.status;
-    $('#tab-shop span').textContent=t.shop;
-    $('#tab-profile span').textContent=t.profile;
-    $('#tab-sandbox span').textContent=t.sandbox;
-    $('#tab-faq span').textContent=t.faq;
-    $('#shopTitle').textContent=t.shopTitle; $('#shopSub').textContent=t.shopSub; $('#shopHint').textContent=t.shopHint;
-    // Профиль подписи остаются в статик разметке, значения не трогаем
-    // Кнопки покупки обновим
-    $$('#page-shop .pack').forEach(p=>{
-      const amt=+p.dataset.amt; p.querySelector('.buy').textContent=t.buy(amt);
-    });
-    updateMainButton();
-  }
-
-  function updateMainButton(){
-    if(!S.tg) return;
-    const t=T[S.lang];
-    if(S.currentPage==='page-shop'){
-      S.tg.MainButton.setParams({text:t.close});
-      S.tg.MainButton.show();
-      S.tg.MainButton.onClick(closeApp);
-    }else{
-      S.tg.MainButton.setParams({text:t.close});
-      S.tg.MainButton.show();
-      S.tg.MainButton.onClick(closeApp);
-    }
-  }
-
+  function haptic(type='light'){ if(!S.haptics) return; try{ S.tg?.HapticFeedback?.impactOccurred(type); }catch(e){} }
   function closeApp(){ try{ S.tg?.close(); }catch(e){} }
 
-  function haptic(type='light'){ if(!S.haptics) return; try{ S.tg?.HapticFeedback?.impactOccurred(type); }catch(e){} }
-
-  // ----------------------- Theme sync -----------------------
+  // ----------------------- Тема из Telegram -----------------------
   function applyThemeFromTelegram(){
     if(!S.tg) return;
     const th = S.tg.themeParams||{};
-    // деликатно применяем оттенки, если переданы
-    const map={
-      text_color:'--text', hint_color:'--muted', bg_color:'--bg', secondary_bg_color:'--card',
-      link_color:'--accent2', button_color:'--accent', button_text_color:'--text'
-    };
+    const map={ text_color:'--text', hint_color:'--muted', bg_color:'--bg', secondary_bg_color:'--card', link_color:'--accent-2', button_color:'--accent', button_text_color:'--text' };
     for(const k in map){ if(th[k]) document.documentElement.style.setProperty(map[k], th[k]); }
   }
 
@@ -504,33 +504,118 @@ canvas{display:block;width:100%;height:360px}
     else if(S.offline){ S.offline=false; toast('✅ Сеть есть'); }
   }
 
-  // ----------------------- Profile from initData -----------------------
+  // ----------------------- Профиль / Объект -----------------------
   function fillProfile(){
     const unsafe = S.tg?.initDataUnsafe||{}; const user=unsafe.user||{};
+    S.userId = user.id||null;
     $('#p_name').textContent = [user.first_name,user.last_name].filter(Boolean).join(' ')||'—';
     $('#p_username').textContent = user.username?('@'+user.username):'—';
     $('#p_id').textContent = user.id||'—';
-    const client = `${S.tg?.platform||'web'}`; $('#p_client').textContent = client;
-    $('#badgeClient').textContent = 'Client: '+client;
-    $('#dbgClient').textContent = client;
-    $('#dbgExp').textContent = S.tg?.isExpanded?'true':'false';
+
+    const client = `${S.tg?.platform||'web'}`; $('#badgeClient').textContent = 'Client: '+client; $('#dbgClient').textContent = client; $('#o_platform').textContent = client;
+    $('#o_premium').textContent = user.is_premium ? 'да' : 'нет';
+    $('#o_scheme').textContent = S.tg?.colorScheme||'—';
+    $('#o_version').textContent = S.tg?.version||'—';
+    $('#o_expanded').textContent = S.tg?.isExpanded?'true':'false';
+    $('#o_start').textContent = unsafe.start_param||'—';
+    $('#o_chat').textContent = unsafe.chat_type||'—';
     $('#dbgTheme').textContent = JSON.stringify(S.tg?.themeParams||{},null,0);
+    $('#dbgExp').textContent = S.tg?.isExpanded?'true':'false';
+
+    const vw = Math.round(window.innerWidth) + '×' + Math.round(window.innerHeight);
+    $('#o_view').textContent = vw;
   }
 
-  // ----------------------- Shop actions -----------------------
+  // ----------------------- Магазин: покупки и история -----------------------
+  let buyLock = false;
   function buyStars(amount){
+    if(buyLock) return; buyLock = true; setTimeout(()=> buyLock=false, 1200);
     haptic('rigid');
-    const t=T[S.lang];
     try{
       S.tg?.sendData?.('buy_'+amount);
-      toast(t.toastBuy(amount));
-      // небольшой таймер — закрываем апп, чтобы мгновенно вернуться в чат
+      toast('Запрос на '+amount+'⭐ отправлен');
+      // Сохраняем в историю предзапись (статус pending), чтобы юзер видел действие.
+      pushHistory({ ts: Date.now(), amount, status:'pending', payload:'order_'+amount });
+      renderHistory();
       setTimeout(()=> closeApp(), 220);
     }catch(e){ toast('Не удалось отправить'); }
   }
 
-  // ----------------------- Scenes (canvas) -----------------------
-  // GPT Scene
+  // ===== История: хранение =====
+  function hasCloud(){ return !!(S.tg && S.tg.CloudStorage && typeof S.tg.CloudStorage.setItem==='function'); }
+  function cloudKey(){ return S.userId ? (S.histCloudPrefix + S.userId) : S.histKey; }
+
+  async function loadHistory(){
+    try{
+      if(hasCloud()){
+        const json = await S.tg.CloudStorage.getItem(cloudKey());
+        if(json){ return JSON.parse(json); }
+      }
+    }catch(e){ /* fallback ниже */ }
+    try{
+      const json = localStorage.getItem(S.histKey); if(json) return JSON.parse(json);
+    }catch(e){ /* ignore */ }
+    return [];
+  }
+
+  async function saveHistory(list){
+    const json = JSON.stringify(list.slice(-200)); // ограничим размер
+    try{ if(hasCloud()) await S.tg.CloudStorage.setItem(cloudKey(), json); }catch(e){ /* fallback */ }
+    try{ localStorage.setItem(S.histKey, json); }catch(e){ /* ignore */ }
+  }
+
+  async function pushHistory(item){ const list = await loadHistory(); list.push(item); await saveHistory(list); }
+  async function clearHistory(){ await saveHistory([]); }
+
+  // ===== История: рендер =====
+  async function renderHistory(){
+    const box = $('#histList'); if(!box) return;
+    const list = await loadHistory();
+    if(!list || list.length===0){ box.innerHTML = '<div class="hist-empty">Пока пусто. Оформите покупку в «Магазине».</div>'; return; }
+    box.innerHTML = '';
+    // Последние сверху
+    list.slice().reverse().forEach(ev=>{
+      const dt = new Date(ev.ts||Date.now());
+      const dstr = dt.toLocaleString();
+      const row = document.createElement('div'); row.className = 'hist-row';
+      const left = document.createElement('div');
+      const right = document.createElement('div');
+      left.innerHTML = '<b>'+ (ev.amount||'?') +'⭐</b><div class="meta">'+(ev.payload||'—')+'</div>';
+      right.innerHTML = '<div style="text-align:right"><div>'+ (ev.status||'—') +'</div><div class="meta">'+ dstr +'</div></div>';
+      row.appendChild(left); row.appendChild(right);
+      box.appendChild(row);
+    });
+  }
+
+  // ===== История: экспорт/импорт/синк =====
+  function exportHistory(){
+    loadHistory().then(list=>{
+      const blob = new Blob([JSON.stringify(list,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='qleweta-history.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      toast('Экспортирован JSON');
+    });
+  }
+
+  function importHistory(){
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'application/json';
+    input.onchange = async () => {
+      const f = input.files && input.files[0]; if(!f) return;
+      const text = await f.text();
+      try{ const list = JSON.parse(text); if(Array.isArray(list)){ await saveHistory(list); toast('Импортирован JSON'); renderHistory(); } else { toast('Неверный формат'); } }
+      catch(e){ toast('Ошибка импорта'); }
+    };
+    input.click();
+  }
+
+  function syncHistory(){
+    // Простой протокол: просим бота синхронизировать — он может прислать историю в чат или
+    // в будущем обновить CloudStorage от своего имени (когда у вас будет бэкенд/бот‑обработчик).
+    try{ S.tg?.sendData?.('history:sync'); toast('Запрос синхронизации отправлен'); }
+    catch(e){ toast('Не удалось отправить'); }
+  }
+
+  // ----------------------- Сцены (canvas) -----------------------
   function SceneGPT(){
     let canvas,ctx,raf=0,started=false,clickBound=false,t=0;
     return {
@@ -542,7 +627,6 @@ canvas{display:block;width:100%;height:360px}
           g.addColorStop(0,'rgba(0,255,210,0.32)'); g.addColorStop(0.45,'rgba(0,140,200,0.15)'); g.addColorStop(1,'rgba(0,0,0,1)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
           raf=requestAnimationFrame(loop);
         }; loop();
-        // typewriter text
         const l1=$('#l1'), l2=$('#l2');
         const type=(el,txt,spd=22,done)=>{ el.textContent=''; let i=0; const tick=()=>{ if(i<txt.length){ el.textContent+=txt[i++]; if(i%3===0) haptic('light'); setTimeout(tick,spd);} else done&&done(); }; tick(); };
         type(l1,'👋 Привет! Я ChatGPT. Нажми на экран — отвечу',18);
@@ -552,7 +636,6 @@ canvas{display:block;width:100%;height:360px}
     }
   }
 
-  // Eyes Scene
   function SceneEyes(){
     let canvas,ctx,raf=0,started=false,eyes=[],mx=0,my=0,active=false,dpr=1,W=0,H=0;
     return {
@@ -571,7 +654,6 @@ canvas{display:block;width:100%;height:360px}
     }
   }
 
-  // Particles Scene
   function SceneParts(){
     let canvas,ctx,raf=0,started=false,P=[],mx=0,my=0,active=false,dpr=1,W=0,H=0,last=0;
     const spawn=(x,y,n=16)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2; const v=40+Math.random()*140; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:2+Math.random()*3,h:(Math.random()*360)|0,life:2}); } };
@@ -591,18 +673,10 @@ canvas{display:block;width:100%;height:360px}
     }
   }
 
-  // ----------------------- Router binding -----------------------
-  function bindTabs(){
-    $$('.tabbtn').forEach(btn=> on(btn,'click',()=>{ setActivePage(btn.dataset.page); haptic('light'); }));
-  }
+  // ----------------------- Навигация -----------------------
+  function bindTabs(){ $$('.tabbtn').forEach(btn=> on(btn,'click',()=>{ setActivePage(btn.dataset.page); haptic('light'); })); }
 
-  function bindLang(){
-    $$('.lang .chip').forEach(ch=> on(ch,'click',()=>{ $$('.lang .chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active'); S.lang=ch.dataset.lang; updateTexts(); haptic('light'); }));
-  }
-
-  function bindShop(){
-    $$('#page-shop .pack .buy').forEach(b=> on(b,'click',()=> buyStars(+b.closest('.pack').dataset.amt)));
-  }
+  function bindShop(){ $$('#page-shop .pack .buy').forEach(b=> on(b,'click',()=> buyStars(+b.closest('.pack').dataset.amt))); }
 
   function bindSandbox(){
     const chips=$$('#page-sandbox .chip');
@@ -619,11 +693,37 @@ canvas{display:block;width:100%;height:360px}
     show('gpt');
   }
 
-  // ----------------------- Init -----------------------
+  function bindHistory(){
+    on($('#btnExport'),'click',()=>{ exportHistory(); haptic('light'); });
+    on($('#btnImport'),'click',()=>{ importHistory(); haptic('light'); });
+    on($('#btnClear'),'click',async()=>{ await clearHistory(); renderHistory(); toast('История очищена'); haptic('light'); });
+    on($('#btnSync'),'click',()=>{ syncHistory(); haptic('light'); });
+    renderHistory();
+  }
+
+  // ----------------------- Anti dbl‑tap zoom для FAQ -----------------------
+  function bindFAQZoomFix(){
+    // uSafari иногда масштабирует при двойном тапе по summary; отлавливаем быстрые двойные касания
+    on($('#faqList'),'touchend',(e)=>{
+      const now = Date.now();
+      if(now - S.lastTouchTime < S.dblTapBlockMs){ e.preventDefault(); /* блокируем zoom */ }
+      S.lastTouchTime = now;
+    }, {passive:false});
+  }
+
+  // ----------------------- MainButton -----------------------
+  function updateMainButton(){
+    if(!S.tg) return;
+    S.tg.MainButton.setParams({text:'Закрыть'});
+    S.tg.MainButton.show();
+    S.tg.MainButton.onClick(closeApp);
+  }
+
+  // ----------------------- Инициализация -----------------------
   function init(){
     applyThemeFromTelegram();
-    bindTabs(); bindLang(); bindShop(); bindSandbox();
-    updateTexts(); fillProfile(); updateOffline();
+    bindTabs(); bindShop(); bindSandbox(); bindHistory(); bindFAQZoomFix();
+    fillProfile(); updateOffline();
     on(window,'online',updateOffline); on(window,'offline',updateOffline);
     if(S.tg){ S.tg.ready(); S.tg.expand(); S.tg.BackButton.onClick(closeApp); }
   }
