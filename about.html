@@ -4,305 +4,205 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>Qleweta — Мини‑апп</title>
+  <title>Qleweta — Мини‑апп (20 сцен)</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-  /* =====================================================================
-     QLEWETA MINI‑APP — 3 TABS (Status · Sandbox · FAQ)
-     Production‑ready single file. Mobile‑first, safe‑area aware, no i18n.
-     ===================================================================== */
-  :root{
-    --bg:#070910; --card:#0c1018; --elev:#0f131c; --stroke:#1e2633;
-    --text:#e9edf6; --muted:#9aa3b2; --accent:#7C5CFF; --accent2:#00D1FF;
-    --ok:#73FFBF; --warn:#FFD166; --danger:#ff6b81; --radius:18px; --gap:12px;
-    --shadow:0 12px 40px rgba(0,0,0,.36);
-    --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
-    --safe-left: env(safe-area-inset-left); --safe-right: env(safe-area-inset-right);
-    --glow: 0 0 22px rgba(124,92,255,.38), 0 0 44px rgba(124,92,255,.18);
-    --glow2: 0 0 18px rgba(0,209,255,.35);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  :root{ --bg:#070910; --card:#0c1018; --elev:#0f131c; --stroke:#1e2633; --text:#e9edf6; --muted:#9aa3b2; --accent:#7C5CFF; --accent2:#00D1FF; --radius:18px; --gap:12px; --shadow:0 12px 40px rgba(0,0,0,.36); --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); --glow:0 0 22px rgba(124,92,255,.38),0 0 44px rgba(124,92,255,.18);} 
+  *{box-sizing:border-box} html,body{height:100%} html{-webkit-text-size-adjust:100%;scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .app{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
-  .header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(0,0,0,.88),rgba(0,0,0,.5));border-bottom:1px solid var(--stroke);padding:calc(10px + var(--safe-top)) var(--gap) 10px;backdrop-filter:blur(8px)}
+  .header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(0,0,0,.9),rgba(0,0,0,.55));border-bottom:1px solid var(--stroke);padding:calc(10px + var(--safe-top)) var(--gap) 10px;backdrop-filter:blur(8px)}
   .header-wrap{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px}
   .logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
-  .title{display:flex;flex-direction:column}
-  .title h1{margin:0;font-size:16px}
-  .title .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
-
-  .page{display:none}
-  .page.active{display:block}
+  .title h1{margin:0;font-size:16px} .title .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
+  .page{display:none} .page.active{display:block}
   .container{max-width:980px;margin:0 auto;padding:14px var(--gap) calc(96px + var(--safe-bottom))}
   .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--stroke);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
-  .grid{display:grid;gap:12px}
-  .block{border:1px solid var(--stroke);border-radius:16px;background:var(--elev);padding:12px}
-  .badges{display:flex;gap:8px;flex-wrap:wrap}
-  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa}
-  .badge.warn{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}
+  .grid{display:grid;gap:12px} .block{border:1px solid var(--stroke);border-radius:16px;background:var(--elev);padding:12px}
+  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:#0f1015aa;margin-right:8px}
 
   /* Sandbox */
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
-  .chip{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:999px;padding:10px 12px;font-weight:800;cursor:pointer;min-height:40px}
+  .chips{display:flex;gap:8px;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .chip{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:999px;padding:10px 12px;font-weight:800;cursor:pointer;min-height:40px;white-space:nowrap}
   .chip.active{outline:2px solid rgba(124,92,255,.45);box-shadow:var(--glow)}
   .canvas-wrap{position:relative;border:1px solid #0d1420;border-radius:16px;overflow:hidden;background:#000}
-  canvas{display:block;width:100%;height:380px}
-  .scene-hint{position:absolute;right:10px;top:10px;font-size:12px;color:#6cf;background:rgba(8,20,40,.6);padding:6px 10px;border-radius:999px;border:1px solid #153055}
+  canvas{display:block;width:100%;height:400px}
+  .hint{position:absolute;right:10px;top:10px;font-size:12px;color:#6cf;background:rgba(8,20,40,.6);padding:6px 10px;border-radius:999px;border:1px solid #153055}
 
-  /* FAQ */
-  .qa{display:grid;gap:10px}
-  .qa .q{border:1px solid var(--stroke);background:#11151e;border-radius:12px;padding:2px 10px}
-  .qa .q summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center;touch-action:manipulation}
-  .qa .q summary::-webkit-details-marker{display:none}
-  .qa .q pre{white-space:pre-wrap;color:var(--muted);margin:8px 0 12px;font-size:14px}
-
-  /* Bottom nav (3 tabs) */
-  .tabs{position:sticky;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-top:1px solid var(--stroke);padding:8px calc(var(--gap) + var(--safe-left)) calc(8px + var(--safe-bottom)) calc(var(--gap) + var(--safe-right))}
+  /* Tabs */
+  .tabs{position:sticky;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-top:1px solid var(--stroke);padding:8px var(--gap)}
   .tabbar{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .tabbtn{border:1px solid var(--stroke);background:#12151b;color:var(--text);border-radius:12px;padding:8px 10px;text-align:center;cursor:pointer;font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
-  .tabbtn svg{width:20px;height:20px;opacity:.92}
   .tabbtn.active{outline:2px solid rgba(124,92,255,.45);box-shadow:var(--glow)}
 
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + var(--safe-bottom));z-index:50;display:none}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:50;display:none}
   .toast .bubble{background:rgba(20,24,33,.95);border:1px solid var(--stroke);color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);font-weight:800}
-  .toast.show{display:block;animation:toast .2s ease-out}
-  @keyframes toast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
-  .appear{animation:appear .18s ease-out}
-  @keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.toast{animation:none}.appear{animation:none}}
+  .toast.show{display:block;animation:toast .2s ease-out} @keyframes toast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   </style>
 </head>
 <body>
 <div class="app" id="app">
   <header class="header">
     <div class="header-wrap">
-      <div class="logo" aria-hidden="true"></div>
+      <div class="logo"></div>
       <div class="title">
         <h1>Qleweta — Мини‑апп</h1>
-        <p class="sub">Бета · аккуратно улучшаем · обновления выходят время от времени</p>
+        <p class="sub">Бета: аккуратно улучшаем · обновления выходят время от времени</p>
       </div>
     </div>
   </header>
 
   <main id="pages">
-    <!-- ===== STATUS ===== -->
-    <section class="page active" id="page-status" aria-labelledby="tab-status">
+    <!-- STATUS -->
+    <section class="page active" id="page-status">
       <div class="container">
-        <div class="card appear">
-          <div class="badges" style="justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <span class="badge warn">Beta</span>
-              <span class="badge">Версия: 3.0</span>
-              <span class="badge" id="badgeClient">Client: —</span>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="block">
-              <h3>Коротко</h3>
-              <p class="muted" style="margin:8px 0 0">Это публичная бета. Возможны баги, микро‑задержки и доработки без предупреждения. Мы не несем ответственности за действия пользователей и сторонние сервисы. Используя мини‑апп, вы подтверждаете согласие с этими условиями.</p>
-            </div>
-            <div class="block">
-              <h3>Апдейты</h3>
-              <p class="muted" style="margin:8px 0 0">Обновления выкатываются по мере готовности: правим баги, улучшаем UX, добавляем сцены в «Песочнице». Следите за новостями в чате с ботом.</p>
-            </div>
+        <div class="card">
+          <span class="badge">Beta</span><span class="badge" id="badgeClient">Client: —</span>
+          <div class="grid" style="margin-top:10px">
+            <div class="block"><h3>Коротко</h3><p class="muted">Это публичная бета. Возможны баги и задержки. Мы не несем ответственности за действия пользователей и сторонние сервисы. Продолжаем полировать и добавлять режимы.</p></div>
+            <div class="block"><h3>Что нового</h3><p class="muted">Исправлены пересечения глаз, полностью переписан калейдоскоп, усилены эффекты и добавлены новые — всего 20 сцен.</p></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== SANDBOX ===== -->
-    <section class="page" id="page-sandbox" aria-labelledby="tab-sandbox">
+    <!-- SANDBOX -->
+    <section class="page" id="page-sandbox">
       <div class="container">
-        <div class="card appear">
-          <div class="block">
-            <h3>Песочница (7 режимов)</h3>
-            <div class="chips" id="sceneChips">
-              <button class="chip active" data-scene="eyes">👀 Eyes</button>
-              <button class="chip" data-scene="parts">✨ Particles</button>
-              <button class="chip" data-scene="kaleido">🔶 Kaleidoscope</button>
-              <button class="chip" data-scene="rings">⭕ Neon Rings</button>
-              <button class="chip" data-scene="starfield">🌌 Starfield</button>
-              <button class="chip" data-scene="plasma">🌈 Plasma</button>
-              <button class="chip" data-scene="waves">〰️ Waves</button>
-            </div>
-
-            <!-- Canvas host -->
-            <div class="canvas-wrap scene" id="sceneHost">
-              <canvas id="canvas"></canvas>
-              <div class="scene-hint">тап — интеракция/цвет</div>
-            </div>
-          </div>
+        <div class="card">
+          <h3 style="margin:0 0 6px">Песочница · 20 сцен</h3>
+          <div class="chips" id="chips"></div>
+          <div class="canvas-wrap"><canvas id="c"></canvas><div class="hint">тап — всплеск/цвет</div></div>
         </div>
       </div>
     </section>
 
-    <!-- ===== FAQ ===== -->
-    <section class="page" id="page-faq" aria-labelledby="tab-faq">
+    <!-- FAQ -->
+    <section class="page" id="page-faq">
       <div class="container">
-        <div class="card appear">
+        <div class="card">
+          <h3 style="margin-top:0">FAQ</h3>
           <div class="grid">
-            <div class="block">
-              <h3>FAQ</h3>
-              <div class="qa" id="faqList">
-                <details class="q"><summary>Как вернуться в бота?</summary><pre>Нажмите системную «Назад» в Telegram или кнопку «Закрыть» (MainButton) — она всегда активна.</pre></details>
-                <details class="q"><summary>Почему иногда «подлагивает»?</summary><pre>Мы в бете. Приоритет — стабильность. На слабых устройствах плотные анимации автоматически упрощаются.</pre></details>
-                <details class="q"><summary>Что делает «Песочница»?</summary><pre>Это набор визуальных сцен на Canvas. Жмите/водите пальцем — будет интеракция, всплески, смена цвета.</pre></details>
-                <details class="q"><summary>Масштабирование при нажатии исчезло?</summary><pre>Да. В мобильном Safari отключён dbl‑tap zoom и обработку тапов мы делаем без зума (touch-action: manipulation).</pre></details>
-                <details class="q"><summary>Аватарки и баланс?</summary><pre>Аватарки не тянем по приватности/CORS. Баланс/платежи — в телеграм‑боте.</pre></details>
-              </div>
-            </div>
-            <div class="block">
-              <h3>Диагностика</h3>
-              <div class="badges"><span class="badge" id="dbgClient">client: —</span><span class="badge" id="dbgScheme">scheme: —</span><span class="badge" id="dbgVer">webapp: —</span></div>
-            </div>
+            <div class="block"><h4>Возврат в бота</h4><p class="muted">Жмите системную «Назад» или MainButton «Закрыть» внизу. Масштабирование отключено, жесты не увеличивают окно.</p></div>
+            <div class="block"><h4>Производительность</h4><p class="muted">На слабых устройствах анимации упрощаются автоматически. Если лаги — закройте лишние вкладки и перезапустите мини‑апп.</p></div>
+            <div class="block"><h4>Что такое сцены?</h4><p class="muted">Это визуальные эффекты на Canvas. Тап/перетаскивание меняют палитру и параметры. Все сцены безопасны и автономны.</p></div>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <nav class="tabs" aria-label="Навигация">
+  <nav class="tabs">
     <div class="tabbar">
-      <button class="tabbtn active" id="tab-status" data-page="page-status" aria-controls="page-status" aria-selected="true" title="Статус">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="currentColor" stroke-width="2"/><path d="M4 6h10" stroke="currentColor" stroke-width="2"/><path d="M4 18h12" stroke="currentColor" stroke-width="2"/></svg>
-        <span>Статус</span>
-      </button>
-      <button class="tabbtn" id="tab-sandbox" data-page="page-sandbox" aria-controls="page-sandbox" title="Песочница">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2"/></svg>
-        <span>Песочница</span>
-      </button>
-      <button class="tabbtn" id="tab-faq" data-page="page-faq" aria-controls="page-faq" title="FAQ">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M12 18h.01" stroke="currentColor" stroke-width="2"/><path d="M9 8a3 3 0 1 1 6 0c0 2-3 2-3 4" stroke="currentColor" stroke-width="2"/></svg>
-        <span>FAQ</span>
-      </button>
+      <button class="tabbtn active" data-page="page-status">Статус</button>
+      <button class="tabbtn" data-page="page-sandbox">Песочница</button>
+      <button class="tabbtn" data-page="page-faq">FAQ</button>
     </div>
   </nav>
 </div>
-
-<div class="toast" id="toast" role="status" aria-live="polite"><div class="bubble" id="toastText">—</div></div>
-
+<div class="toast" id="toast"><div class="bubble" id="toastText">—</div></div>
 <script>
-/* ====================================================================
-   QLEWETA MINI‑APP — JS
-   3 страницы, 7 сцен. Старт/стоп сцен при переключении. Haptics, Theme.
-   ==================================================================== */
-(function(){
-  'use strict';
-  const S = {
-    tg: (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null,
-    page: 'page-status',
-    haptics: true,
-    scenes: {},
-    activeScene: null,
-    lastTouch: 0,
-  };
-  const $ = q=>document.querySelector(q); const $$=q=>Array.from(document.querySelectorAll(q));
-  const on=(el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt);
-  function haptic(type='light'){ if(!S.haptics) return; try{ S.tg?.HapticFeedback?.impactOccurred(type);}catch(e){} }
-  function toast(msg){ const box=$('#toast'); const t=$('#toastText'); if(!box||!t) return; t.textContent=msg; box.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>box.classList.remove('show'),1600);} 
-  function applyTheme(){ if(!S.tg) return; const th=S.tg.themeParams||{}; const map={text_color:'--text',hint_color:'--muted',bg_color:'--bg',secondary_bg_color:'--card',link_color:'--accent2',button_color:'--accent'}; for(const k in map){ if(th[k]) document.documentElement.style.setProperty(map[k], th[k]); } $('#dbgScheme').textContent='scheme: '+(S.tg.colorScheme||'—'); $('#dbgVer').textContent='webapp: '+(S.tg.version||'—'); }
-  function fillClient(){ const c=S.tg?.platform||'web'; $('#badgeClient').textContent='Client: '+c; $('#dbgClient').textContent='client: '+c; }
-  function setPage(id){ if(S.page===id) return; $$('.page').forEach(p=>p.classList.toggle('active',p.id===id)); $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id)); S.page=id; if(id!=='page-sandbox'){ stopScene(); } try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){} }
-  function updateMainButton(){ if(!S.tg) return; S.tg.MainButton.setParams({text:'Закрыть'}); S.tg.MainButton.show(); S.tg.MainButton.onClick(()=>{ try{S.tg.close()}catch(e){} }); }
+(function(){'use strict';
+const tg=(window.Telegram&&Telegram.WebApp)?Telegram.WebApp:null;
+const $=q=>document.querySelector(q), $$=q=>Array.from(document.querySelectorAll(q));
+function haptic(type='light'){try{tg?.HapticFeedback?.impactOccurred(type)}catch(e){}}
+function toast(s){const b=$('#toast'),t=$('#toastText');t.textContent=s;b.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>b.classList.remove('show'),1500)}
+function theme(){if(!tg) return; const th=tg.themeParams||{}; const map={text_color:'--text',hint_color:'--muted',bg_color:'--bg',secondary_bg_color:'--card',link_color:'--accent2',button_color:'--accent'}; for(const k in map){ if(th[k]) document.documentElement.style.setProperty(map[k], th[k]); } }
+function setPage(id){ $$('.page').forEach(p=>p.classList.toggle('active',p.id===id)); $$('.tabbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===id)); if(id==='page-sandbox'){ ensureCanvasReady(); if(!current) start('eyes'); } else { stop(); } try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}}
+function initHeader(){const c=tg?.platform||'web'; $('#badgeClient').textContent='Client: '+c;}
 
-  // ================== SCENE ENGINE ==================
-  function stopScene(){ if(!S.activeScene) return; try{ S.activeScene.stop && S.activeScene.stop(); }catch(e){} S.activeScene=null; }
-  function startScene(name){ const host=$('#canvas'); if(!host) return; if(S.activeScene && S.activeScene.name===name) return; stopScene(); if(!S.scenes[name]){ S.scenes[name]=SceneFactory(name, host); } S.activeScene=S.scenes[name]; S.activeScene.start(); }
+// ======== ENGINE ========
+const canvas=$('#c'), ctx=canvas.getContext('2d');
+let W=0,H=0,dpr=1,raf=0,hue=200,tapBoost=0,mouse={x:0,y:0,active:false}, sandboxReady=false;
+function _measureBox(){const box=canvas.parentElement; let w=box?.clientWidth||0; if(!w){ w=Math.max(320, Math.min(1024, (window.innerWidth||360)-24)); } return {w, h:400};}
+function resize(force){ const m=_measureBox(); const newW=m.w, newH=m.h; if(!newW||!newH){ if(force){ setTimeout(()=>resize(true),50);} return; } W=newW; H=newH; dpr=Math.max(1,Math.min(2,devicePixelRatio||1)); canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); }
+window.addEventListener('resize',()=>resize());
+function bindPointer(){const r=()=>canvas.getBoundingClientRect(); function set(e){const b=r(); const p=('touches'in e)?e.touches[0]:e; mouse.x=p.clientX-b.left; mouse.y=p.clientY-b.top; mouse.active=true;} function clr(){mouse.active=false} canvas.addEventListener('mousemove',set); canvas.addEventListener('mouseleave',clr); canvas.addEventListener('touchstart',e=>{e.preventDefault();set(e);tap()},{passive:false}); canvas.addEventListener('touchmove',e=>{e.preventDefault();set(e)},{passive:false}); window.addEventListener('touchend',clr); canvas.addEventListener('click',()=>tap()); }
+function ensureCanvasReady(){ if(!sandboxReady){ bindPointer(); sandboxReady=true; } resize(true); }
+function tap(){ hue=(hue+48)%360; tapBoost=1; haptic('medium'); }
 
-  function SceneFactory(name, canvas){
-    const ctx=canvas.getContext('2d'); let W=0,H=0,dpr=1,raf=0,started=false; let hue=200; let tapBoost=0; let mouse={x:0,y:0,active:false};
-    function resize(){ const box=canvas.parentElement; W=box.clientWidth; H=380; dpr=Math.max(1,Math.min(2,devicePixelRatio||1)); canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); }
-    function bind(){ const r=canvas.getBoundingClientRect.bind(canvas); const set=(e)=>{ const b=r(); const p=('touches'in e)?e.touches[0]:e; mouse.x=p.clientX-b.left; mouse.y=p.clientY-b.top; mouse.active=true; }; const clr=()=>{mouse.active=false}; on(canvas,'mousemove',set); on(canvas,'mouseleave',clr); on(canvas,'touchstart',e=>{e.preventDefault(); set(e); tap();},{passive:false}); on(canvas,'touchmove',e=>{e.preventDefault(); set(e)},{passive:false}); on(window,'touchend',clr); on(canvas,'click',()=>{ tap(); }); }
-    function tap(){ hue=(hue+60)%360; tapBoost=1; haptic('medium'); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stop(); } else if($('#page-sandbox').classList.contains('active') && current){ start(current); } });
 
-    // ====== EYES ======
-    function startEyes(){ let eyes=[{x:W*0.38,y:H*0.5,r:62, iris:`hsl(${hue},90%,60%)`},{x:W*0.62,y:H*0.5,r:62, iris:`hsl(${(hue+40)%360},90%,60%)`}];
-      const drawEye=e=>{ const {x,y,r,iris}=e; ctx.shadowBlur=18; ctx.shadowColor='rgba(180,200,255,.35)'; ctx.fillStyle='#0b0f18'; ctx.strokeStyle='#2a2f3a'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); const dx=(mouse.x||W/2)-x, dy=(mouse.y||H/2)-y, dist=Math.hypot(dx,dy), lim=r*0.45; const px=x+(dist>lim?dx/dist*lim:dx), py=y+(dist>lim?dy/dist*lim:dy); ctx.shadowBlur=20; ctx.shadowColor=iris; ctx.fillStyle=iris; ctx.beginPath(); ctx.arc(px,py,r*0.36,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#000'; ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(px,py,r*0.18,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(px-r*0.1,py-r*0.1,r*0.06,0,Math.PI*2); ctx.fill(); };
-      const loop=()=>{ ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); eyes[0].x=W*0.38; eyes[0].y=H*0.5; eyes[1].x=W*0.62; eyes[1].y=H*0.5; eyes[0].iris=`hsl(${hue},90%,60%)`; eyes[1].iris=`hsl(${(hue+40)%360},90%,60%)`; drawEye(eyes[0]); drawEye(eyes[1]); raf=requestAnimationFrame(loop); }; loop(); return ()=>cancelAnimationFrame(raf); }
+// ======== SCENES LIB ========
+const Scenes = {};
+function loop(draw){cancelAnimationFrame(raf); (function f(t){raf=requestAnimationFrame(f); draw(t)})();}
+function stop(){cancelAnimationFrame(raf)}
+function gradGlow(x,y,r1,r2,h){const g=ctx.createRadialGradient(x,y,r1,x,y,r2); g.addColorStop(0,`hsla(${h},100%,60%,.9)`); g.addColorStop(.6,`hsla(${(h+60)%360},100%,55%,.25)`); g.addColorStop(1,'rgba(0,0,0,0)'); return g}
 
-    // ====== PARTICLES ======
-    function startParticles(){ const P=[]; const spawn=(x,y,n=16)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2; const v=40+Math.random()*140; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:2+Math.random()*3,h:(Math.random()*360)|0,life:2}); } }; spawn(W/2,H/2,28); let last=performance.now();
-      const loop=(now)=>{ const dt=Math.min(40,now-last)/1000; last=now; ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(0,0,W,H); for(const p of P){ if(mouse.active){ const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.hypot(dx,dy)+1; const f=120/d; p.vx+=dx/d*f*dt; p.vy+=dy/d*f*dt; } p.vx*=0.99; p.vy*=0.99; p.x+=p.vx*dt; p.y+=p.vy*dt; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; p.life-=dt*0.25; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${p.h},100%,60%,.9)`; ctx.fillStyle=`hsla(${p.h},95%,60%,.9)`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1); raf=requestAnimationFrame(loop); };
-      on(canvas,'click',e=>{ const r=canvas.getBoundingClientRect(); const x=e.clientX-r.left,y=e.clientY-r.top; spawn(x,y,20); }); raf=requestAnimationFrame(loop); return ()=>cancelAnimationFrame(raf); }
+// 1) EYES — фикс расстояния и свечения
+Scenes.eyes = ()=>{ let r=Math.min(W,H)*0.22; let a=W*0.16; let eyes=[{x:W*0.5-a,y:H*0.5,r},{x:W*0.5+a,y:H*0.5,r}]; function drawEye(e, irisHue){ const {x,y,r}=e; ctx.shadowBlur=18; ctx.shadowColor='rgba(80,120,160,.45)'; ctx.fillStyle='#0b0f18'; ctx.strokeStyle='#2a2f3a'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); const dx=(mouse.x||W/2)-x, dy=(mouse.y||H/2)-y, dist=Math.hypot(dx,dy), lim=r*0.42; const px=x+(dist>lim?dx/dist*lim:dx), py=y+(dist>lim?dy/dist*lim:dy); ctx.shadowBlur=22; ctx.shadowColor=`hsl(${irisHue},100%,60%)`; ctx.fillStyle=`hsl(${irisHue},100%,60%)`; ctx.beginPath(); ctx.arc(px,py,r*0.36,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#000'; ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(px,py,r*0.18,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(px-r*0.1,py-r*0.1,r*0.06,0,Math.PI*2); ctx.fill(); }
+  loop(()=>{ r=Math.min(W,H)*0.22; a=Math.max(r*1.1, W*0.16); eyes[0].x=W*0.5-a; eyes[1].x=W*0.5+a; eyes[0].y=eyes[1].y=H*0.5; eyes[0].r=eyes[1].r=r; ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); drawEye(eyes[0],hue); drawEye(eyes[1],(hue+40)%360); }); return stop }
 
-    // ====== KALEIDOSCOPE (glow + center burst) ======
-    function startKaleido(){ let t=0; const N=12; // секторов
-      const loop=()=>{ t+=0.015 + tapBoost*0.05; tapBoost=Math.max(0,tapBoost-0.02); const cx=W/2, cy=H/2; ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-        ctx.save(); ctx.translate(cx,cy);
-        for(let i=0;i<N;i++){
-          ctx.save(); ctx.rotate((i/N)*Math.PI*2 + t*0.2);
-          const grd=ctx.createRadialGradient(0,0,10, 0,0,Math.max(W,H)*0.6);
-          grd.addColorStop(0,`hsla(${(hue+i*10)%360},100%,60%,0.95)`);
-          grd.addColorStop(0.4,`hsla(${(hue+80)%360},100%,50%,0.35)`);
-          grd.addColorStop(1,'rgba(0,0,0,0)');
-          ctx.fillStyle=grd; ctx.globalCompositeOperation='screen';
-          ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,Math.max(W,H), 0, (Math.PI*2)/N); ctx.closePath(); ctx.fill();
-          ctx.restore();
-        }
-        // центр всплеска
-        const pulse = 1 + Math.sin(t*4)*0.08 + tapBoost*0.6;
-        ctx.shadowBlur=40; ctx.shadowColor=`hsla(${(hue+180)%360},100%,60%,.9)`; ctx.fillStyle=`hsla(${(hue+180)%360},100%,60%,.9)`;
-        ctx.beginPath(); ctx.arc(cx,cy, 22*pulse, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.globalCompositeOperation='source-over';
-        raf=requestAnimationFrame(loop);
-      }; loop();
-      on(canvas,'click',()=>{ hue=(hue+45)%360; tapBoost=1; });
-      return ()=>cancelAnimationFrame(raf);
-    }
+// 2) PARTICLES
+Scenes.particles = ()=>{ const P=[]; const spawn=(x,y,n=18)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=60+Math.random()*120; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:2+Math.random()*3,h:(Math.random()*360)|0,life:2}); }}; spawn(W/2,H/2,28); canvas.addEventListener('click',e=>{const b=canvas.getBoundingClientRect();spawn(e.clientX-b.left,e.clientY-b.top,24)},{once:false}); let last=performance.now(); loop((now)=>{ const dt=Math.min(40,now-last)/1000; last=now; ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(0,0,W,H); for(const p of P){ if(mouse.active){ const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.hypot(dx,dy)+1; const f=120/d; p.vx+=dx/d*f*dt; p.vy+=dy/d*f*dt;} p.vx*=0.99;p.vy*=0.99;p.x+=p.vx*dt;p.y+=p.vy*dt; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; p.life-=dt*0.25; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${p.h},100%,60%,.9)`; ctx.fillStyle=`hsla(${p.h},95%,60%,.9)`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1); }); return stop }
 
-    // ====== NEON RINGS ======
-    function startRings(){ let t=0; const loop=()=>{ t+=0.02; ctx.clearRect(0,0,W,H); ctx.fillStyle='#05060a'; ctx.fillRect(0,0,W,H); const cx=W/2,cy=H/2; for(let i=0;i<8;i++){ const r=30+i*28 + Math.sin(t+i*.6)*6; ctx.lineWidth=2; ctx.shadowBlur=14; ctx.shadowColor=`hsla(${(hue+i*20)%360},100%,60%,.9)`; ctx.strokeStyle=`hsla(${(hue+i*20)%360},100%,60%,.9)`; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); } raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+30)%360; }); return ()=>cancelAnimationFrame(raf); }
+// 3) KALEIDOSCOPE — устойчивый, с оффскрином и всплеском в центре
+Scenes.kaleido = ()=>{ const N=12; const off=document.createElement('canvas'); const octx=off.getContext('2d'); function updOff(){ off.width=256; off.height=256; const cx=128, cy=128; const g=octx.createRadialGradient(cx,cy,10,cx,cy,128); g.addColorStop(0,`hsla(${(hue)%360},100%,60%,0.9)`); g.addColorStop(0.5,`hsla(${(hue+80)%360},100%,50%,0.35)`); g.addColorStop(1,'rgba(0,0,0,0)'); octx.clearRect(0,0,256,256); octx.fillStyle=g; octx.fillRect(0,0,256,256); } updOff(); let t=0; canvas.addEventListener('click',()=>{hue=(hue+40)%360; updOff(); tapBoost=1},{once:false}); loop(()=>{ t+=0.015+tapBoost*0.04; tapBoost=Math.max(0,tapBoost-0.02); ctx.clearRect(0,0,W,H); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); const cx=W/2, cy=H/2; ctx.save(); ctx.translate(cx,cy); const slice=(Math.PI*2)/N; for(let i=0;i<N;i++){ ctx.save(); ctx.rotate(i*slice + t*0.3); ctx.globalCompositeOperation='screen'; ctx.drawImage(off, -W*0.6,-W*0.6, W*1.2, W*1.2); ctx.restore(); } ctx.restore(); const pulse=1+Math.sin(t*4)*0.08+tapBoost*0.6; ctx.shadowBlur=40; ctx.shadowColor=`hsla(${(hue+180)%360},100%,60%,.9)`; ctx.fillStyle=`hsla(${(hue+180)%360},100%,60%,.9)`; ctx.beginPath(); ctx.arc(cx,cy,22*pulse,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; }); return stop }
 
-    // ====== STARFIELD ======
-    function startStarfield(){ const N=180; const stars=[]; for(let i=0;i<N;i++){ stars.push({x:(Math.random()-0.5)*W,y:(Math.random()-0.5)*H,z:Math.random()*W}); } const speed=60; function proj(s){ const f=200/(s.z+1); return {x:W/2+s.x*f, y:H/2+s.y*f}; }
-      const loop=(now)=>{ ctx.fillStyle='rgba(0,0,10,0.4)'; ctx.fillRect(0,0,W,H); for(const s of stars){ s.z-=1.2; if(s.z<1){ s.x=(Math.random()-0.5)*W; s.y=(Math.random()-0.5)*H; s.z=W; } const p=proj(s); ctx.fillStyle=`hsla(${hue},100%,70%,.9)`; ctx.fillRect(p.x,p.y, 2,2); } raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop); on(canvas,'click',()=>{ hue=(hue+50)%360; }); return ()=>cancelAnimationFrame(raf); }
+// 4) NEON RINGS
+Scenes.rings = ()=>{ let t=0; loop(()=>{ t+=0.02; ctx.clearRect(0,0,W,H); ctx.fillStyle='#05060a'; ctx.fillRect(0,0,W,H); const cx=W/2,cy=H/2; for(let i=0;i<10;i++){ const r=28+i*24 + Math.sin(t+i*.6)*6; ctx.lineWidth=2; ctx.shadowBlur=14; const col=`hsla(${(hue+i*18)%360},100%,60%,.9)`; ctx.shadowColor=col; ctx.strokeStyle=col; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); } }); canvas.addEventListener('click',()=>{hue=(hue+30)%360}); return stop }
 
-    // ====== PLASMA (синус‑градиент) ======
-    function startPlasma(){ let t=0; const img=ctx.createImageData(W,H); const data=img.data; const loop=()=>{ t+=0.03; let i=0; for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ const v=Math.sin(x*0.02+t)+Math.sin(y*0.02-t)+Math.sin((x+y)*0.015); const c=(v+3)/6; const Hh=(hue+Math.floor(c*180))%360; const [r,g,b]=hsl2rgb(Hh/360,1,0.5); data[i++]=r; data[i++]=g; data[i++]=b; data[i++]=255; } } ctx.putImageData(img,0,0); raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+40)%360; }); return ()=>cancelAnimationFrame(raf); }
+// 5) STARFIELD
+Scenes.starfield = ()=>{ const N=Math.floor(160+W/6); const Sarr=[]; for(let i=0;i<N;i++) Sarr.push({x:(Math.random()-0.5)*W,y:(Math.random()-0.5)*H,z:Math.random()*W}); function proj(s){ const f=200/(s.z+1); return {x:W/2+s.x*f, y:H/2+s.y*f}; } loop(()=>{ ctx.fillStyle='rgba(0,0,10,.35)'; ctx.fillRect(0,0,W,H); for(const s of Sarr){ s.z-=1.2; if(s.z<1){ s.x=(Math.random()-0.5)*W; s.y=(Math.random()-0.5)*H; s.z=W; } const p=proj(s); ctx.fillStyle=`hsla(${hue},100%,70%,.9)`; ctx.fillRect(p.x,p.y,2,2);} }); canvas.addEventListener('click',()=>{hue=(hue+50)%360}); return stop }
 
-    // ====== WAVES ======
-    function startWaves(){ let t=0; const loop=()=>{ t+=0.02; ctx.clearRect(0,0,W,H); const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,`hsl(${hue},80%,12%)`); grd.addColorStop(1,'#000'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H); ctx.lineWidth=2; for(let k=0;k<5;k++){ const amp=12+k*6; const spd=0.02+k*0.01; ctx.beginPath(); for(let x=0;x<=W;x+=6){ const y=H*0.5 + Math.sin(x*0.02 + t*(2+spd)+k)*amp; if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.strokeStyle=`hsla(${(hue+k*15)%360},100%,60%,.7)`; ctx.shadowBlur=12; ctx.shadowColor=ctx.strokeStyle; ctx.stroke(); } raf=requestAnimationFrame(loop); }; loop(); on(canvas,'click',()=>{ hue=(hue+35)%360; }); return ()=>cancelAnimationFrame(raf); }
+// 6) PLASMA — безопасное создание ImageData
+Scenes.plasma = ()=>{ let t=0, img=null, data=null; function ensureImg(){ if(W<1||H<1){ return false; } if(!img || img.width!==W || img.height!==H){ try{ img=ctx.createImageData(Math.max(1,W), Math.max(1,H)); data=img.data; }catch(e){ return false; } } return true; } loop(()=>{ t+=0.03; if(!ensureImg()){ return; } let i=0; for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ const v=Math.sin(x*0.02+t)+Math.sin(y*0.02-t)+Math.sin((x+y)*0.015); const c=(v+3)/6; const Hh=(hue+Math.floor(c*180))%360; const rgb=hsl2rgb(Hh/360,1,0.5); data[i++]=rgb[0]; data[i++]=rgb[1]; data[i++]=rgb[2]; data[i++]=255; } } ctx.putImageData(img,0,0); }); canvas.addEventListener('click',()=>{hue=(hue+40)%360}); return stop }
 
-    // ===== Helpers =====
-    function hsl2rgb(h,s,l){ let r,g,b; if(s===0){ r=g=b=l; } else { const hue2rgb=(p,q,t)=>{ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; }; const q=l<0.5? l*(1+s): l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);} return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
+// 7) WAVES
+Scenes.waves = ()=>{ let t=0; loop(()=>{ t+=0.02; ctx.clearRect(0,0,W,H); const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,`hsl(${hue},80%,12%)`); grd.addColorStop(1,'#000'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H); ctx.lineWidth=2; for(let k=0;k<6;k++){ const amp=12+k*6; ctx.beginPath(); for(let x=0;x<=W;x+=6){ const y=H*0.5 + Math.sin(x*0.02 + t*(2+k*0.3))*amp; if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} const col=`hsla(${(hue+k*12)%360},100%,60%,.75)`; ctx.shadowBlur=12; ctx.shadowColor=col; ctx.strokeStyle=col; ctx.stroke(); } }); canvas.addEventListener('click',()=>{hue=(hue+35)%360}); return stop }
 
-    // public API
-    return {
-      name,
-      start(){ if(started) return; started=true; resize(); bind(); window.addEventListener('resize',resize);
-        let killer=()=>{}; switch(name){
-          case 'eyes': killer=startEyes(); break;
-          case 'parts': killer=startParticles(); break;
-          case 'kaleido': killer=startKaleido(); break;
-          case 'rings': killer=startRings(); break;
-          case 'starfield': killer=startStarfield(); break;
-          case 'plasma': killer=startPlasma(); break;
-          case 'waves': killer=startWaves(); break;
-        }
-        this._stop=()=>{ cancelAnimationFrame(raf); killer&&killer(); };
-      },
-      stop(){ if(!started) return; started=false; try{ this._stop&&this._stop(); }catch(e){} window.removeEventListener('resize',resize); }
-    };
-  }
+// 8) RIPPLE
+Scenes.ripple = ()=>{ const rip=[]; canvas.addEventListener('click',e=>{const b=canvas.getBoundingClientRect(); rip.push({x:e.clientX-b.left,y:e.clientY-b.top,r:0});},{once:false}); loop(()=>{ ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fillRect(0,0,W,H); for(const r of rip){ r.r+=4; ctx.lineWidth=2; const col=`hsla(${hue},100%,65%,.9)`; ctx.shadowBlur=10; ctx.shadowColor=col; ctx.strokeStyle=col; ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke(); } for(let i=rip.length-1;i>=0;i--) if(rip[i].r>Math.hypot(W,H)) rip.splice(i,1); }); return stop }
 
-  // ================== INIT ==================
-  function bindTabs(){ $$('.tabbtn').forEach(b=> on(b,'click',()=>{ setPage(b.dataset.page); haptic('light'); })); }
-  function setPage(id){ setPage._=setPage._||((id)=>{}); setPage._(id); }
-  setPage._=(id)=>{ if(S.page===id) return; $$('.page').forEach(p=>p.classList.toggle('active',p.id===id)); $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id)); S.page=id; if(id!=='page-sandbox'){ stopScene(); } try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){} };
+// 9) CONFETTI
+Scenes.confetti = ()=>{ const arr=[]; for(let i=0;i<120;i++){ arr.push({x:Math.random()*W,y:Math.random()*-H*1.5,s:6+Math.random()*8, sp:1+Math.random()*2, r:Math.random()*Math.PI}); } loop(()=>{ ctx.clearRect(0,0,W,H); for(const f of arr){ f.y+=f.sp; f.r+=0.03; if(f.y>H+20){ f.y=-20; f.x=Math.random()*W; } ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.r); ctx.fillStyle=`hsla(${(hue + f.x/4)%360},100%,60%,.9)`; ctx.fillRect(-f.s/2,-f.s/2,f.s,f.s*0.6); ctx.restore(); } }); canvas.addEventListener('click',()=>{hue=(hue+24)%360}); return stop }
 
-  function bindSandbox(){ const chips=$$('#sceneChips .chip'); chips.forEach(c=> on(c,'click',()=>{ chips.forEach(x=>x.classList.remove('active')); c.classList.add('active'); startScene(c.dataset.scene); haptic('light'); })); startScene('eyes'); }
+// 10) VORTEX
+Scenes.vortex = ()=>{ const P=[]; for(let i=0;i<240;i++){ const a=i*Math.PI*2/240; P.push({a, r:40+Math.random()*Math.min(W,H)*0.45, s:0.002+Math.random()*0.004}); } loop(()=>{ ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fillRect(0,0,W,H); ctx.save(); ctx.translate(W/2,H/2); for(const p of P){ p.a+=p.s; const x=Math.cos(p.a)*p.r, y=Math.sin(p.a)*p.r; const col=`hsla(${(hue + p.r/3)%360},100%,60%,.8)`; ctx.shadowBlur=12; ctx.shadowColor=col; ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill(); } ctx.restore(); }); canvas.addEventListener('click',()=>{hue=(hue+28)%360}); return stop }
 
-  function startScene(name){ startScene._=startScene._||((name)=>{}); startScene._(name);} 
-  startScene._=(name)=>{ const canvas=$('#canvas'); if(!canvas) return; if(S.activeScene && S.activeScene.name===name) return; if(S.activeScene) { try{S.activeScene.stop()}catch(e){} } if(!S.scenes[name]){ S.scenes[name]=SceneFactory(name, canvas);} S.activeScene=S.scenes[name]; S.activeScene.start(); };
+// 11) TUNNEL
+Scenes.tunnel = ()=>{ let z=0; loop(()=>{ z+=0.06; ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); ctx.save(); ctx.translate(W/2,H/2); for(let i=0;i<60;i++){ const s=(i+z)%60; const r=s*8; const col=`hsla(${(hue + s*3)%360},100%,60%,.8)`; ctx.strokeStyle=col; ctx.shadowBlur=10; ctx.shadowColor=col; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke(); } ctx.restore(); }); canvas.addEventListener('click',()=>{hue=(hue+36)%360}); return stop }
 
-  function stopScene(){ if(S.activeScene){ try{S.activeScene.stop()}catch(e){} S.activeScene=null; } }
+// 12) MATRIX
+Scenes.matrix = ()=>{ const cols=Math.floor(Math.max(1,W)/12); const y=Array(cols).fill(0); const chars='アイウエオカキクケコｱｲｳｴｵ01'; loop(()=>{ ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(0,0,W,H); ctx.fillStyle=`hsla(${(hue+120)%360},100%,70%,.9)`; ctx.font='14px monospace'; for(let i=0;i<cols;i++){ const ch=chars[(Math.random()*chars.length)|0]; const x=i*12; ctx.fillText(ch,x,y[i]); y[i]= (y[i]>H+Math.random()*100)?0:y[i]+14; } }); canvas.addEventListener('click',()=>{hue=(hue+30)%360}); return stop }
 
-  function attachNav(){ on($('#tab-status'),'click',()=>setPage('page-status')); on($('#tab-sandbox'),'click',()=>setPage('page-sandbox')); on($('#tab-faq'),'click',()=>setPage('page-faq')); }
+// 13) ORBS
+Scenes.orbs = ()=>{ const arr=[]; for(let i=0;i<12;i++){ arr.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*80,vy:(Math.random()-.5)*80,r:16+Math.random()*22,h:(Math.random()*360)|0}); } loop(()=>{ const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#02030a'); g.addColorStop(1,'#000'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); for(const o of arr){ o.x+=o.vx/60; o.y+=o.vy/60; if(o.x<o.r||o.x>W-o.r) o.vx*=-1; if(o.y<o.r||o.y>H-o.r) o.vy*=-1; ctx.shadowBlur=24; const col=`hsla(${(hue+o.h)%360},100%,60%,.85)`; ctx.shadowColor=col; ctx.fillStyle=col; ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2); ctx.fill(); } }); canvas.addEventListener('click',()=>{hue=(hue+22)%360}); return stop }
 
-  function init(){ applyTheme(); fillClient(); bindTabs(); attachNav(); bindSandbox(); updateMainButton(); if(S.tg){ S.tg.ready(); S.tg.expand(); S.tg.BackButton.onClick(()=>{ try{S.tg.close()}catch(e){} }); } }
+// 14) FIREFLIES
+Scenes.fireflies = ()=>{ const F=[]; for(let i=0;i<100;i++) F.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*40,vy:(Math.random()-.5)*40}); loop(()=>{ ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(0,0,W,H); for(const f of F){ f.x+=f.vx/60; f.y+=f.vy/60; if(mouse.active){ f.vx+=(mouse.x-f.x)*0.0005; f.vy+=(mouse.y-f.y)*0.0005; } if(f.x<0||f.x>W) f.vx*=-1; if(f.y<0||f.y>H) f.vy*=-1; const col=`hsla(${hue},100%,70%,.9)`; ctx.shadowBlur=10; ctx.shadowColor=col; ctx.fillStyle=col; ctx.fillRect(f.x,f.y,2,2); } }); canvas.addEventListener('click',()=>{hue=(hue+26)%360}); return stop }
 
-  document.addEventListener('DOMContentLoaded', init);
+// 15) HEX GRID
+Scenes.hex = ()=>{ const s=22; const h=Math.sin(Math.PI/3)*s; const rows=Math.ceil(H/(h*2))+2, cols=Math.ceil(W/(s*1.5))+2; let t=0; loop(()=>{ t+=0.03; ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); for(let r=0;r<rows;r++){ for(let c=0;c<cols;c++){ const x=c*s*1.5 + ((r%2)? s*0.75:0); const y=r*h*2; const ph=(r*7+c*11)*0.05; const k= (Math.sin(t+ph)+1)/2; const col=`hsla(${(hue+ k*180)%360},100%,50%,.7)`; polyHex(x,y,s*k*0.95,col); } } }); function polyHex(cx,cy,rad,col){ ctx.strokeStyle=col; ctx.shadowBlur=10; ctx.shadowColor=col; ctx.beginPath(); for(let i=0;i<6;i++){ const a=Math.PI/3*i; const x=cx+Math.cos(a)*rad, y=cy+Math.sin(a)*rad; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.closePath(); ctx.stroke(); } return stop }
+
+// 16) AURORA
+Scenes.aurora = ()=>{ let t=0; loop(()=>{ t+=0.01; ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); for(let i=0;i<4;i++){ const col=`hsla(${(hue+i*20)%360},100%,60%,.35)`; ctx.fillStyle=col; ctx.shadowBlur=26; ctx.shadowColor=col; ctx.beginPath(); ctx.moveTo(0,H*0.6); for(let x=0;x<=W;x+=20){ const y=H*0.6 + Math.sin(x*0.01 + t*(2+i))*40*Math.sin(t+i); ctx.lineTo(x,y);} ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.fill(); } }); canvas.addEventListener('click',()=>{hue=(hue+34)%360}); return stop }
+
+// 17) METABALLS (легкий, через additive blending)
+Scenes.metaballs = ()=>{ const B=[]; for(let i=0;i<6;i++) B.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*80,vy:(Math.random()-.5)*80,r:30+Math.random()*26,h:(Math.random()*360)|0}); loop(()=>{ ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='lighter'; for(const b of B){ b.x+=b.vx/60; b.y+=b.vy/60; if(b.x<b.r||b.x>W-b.r) b.vx*=-1; if(b.y<b.r||b.y>H-b.r) b.vy*=-1; const g=gradGlow(b.x,b.y,2,b.r,b.h); ctx.fillStyle=g; ctx.fillRect(b.x-b.r,b.y-b.r,b.r*2,b.r*2); } ctx.globalCompositeOperation='source-over'; }); canvas.addEventListener('click',()=>{hue=(hue+32)%360}); return stop }
+
+// 18) LISSAJOUS
+Scenes.lissajous = ()=>{ let t=0; loop(()=>{ t+=0.02; ctx.clearRect(0,0,W,H); ctx.save(); ctx.translate(W/2,H/2); ctx.beginPath(); for(let a=0;a<Math.PI*2;a+=0.01){ const x=Math.sin(3*a+t)*W*0.3, y=Math.sin(4*a)*H*0.3; if(a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} const col=`hsla(${hue},100%,60%,.9)`; ctx.shadowBlur=14; ctx.shadowColor=col; ctx.strokeStyle=col; ctx.stroke(); ctx.restore(); }); canvas.addEventListener('click',()=>{hue=(hue+38)%360}); return stop }
+
+// 19) GRID WARP
+Scenes.gridwarp = ()=>{ let t=0; loop(()=>{ t+=0.03; ctx.fillStyle='#05060a'; ctx.fillRect(0,0,W,H); ctx.lineWidth=1; for(let y=0;y<=H;y+=20){ ctx.beginPath(); for(let x=0;x<=W;x+=20){ const yy=y + Math.sin((x+t)*0.08)*8; if(x===0) ctx.moveTo(x,yy); else ctx.lineTo(x,yy);} const col=`hsla(${(hue+y/4)%360},100%,60%,.5)`; ctx.strokeStyle=col; ctx.stroke(); } for(let x=0;x<=W;x+=20){ ctx.beginPath(); for(let y=0;y<=H;y+=20){ const xx=x + Math.sin((y+t)*0.08)*8; if(y===0) ctx.moveTo(xx,y); else ctx.lineTo(xx,y);} const col=`hsla(${(hue+x/4)%360},100%,60%,.5)`; ctx.strokeStyle=col; ctx.stroke(); } }); canvas.addEventListener('click',()=>{hue=(hue+26)%360}); return stop }
+
+// 20) NOISE — безопасное создание ImageData
+Scenes.noise = ()=>{ let img=null, data=null, t=0; function ensureImg(){ if(W<1||H<1){ return false; } if(!img || img.width!==W || img.height!==H){ try{ img=ctx.createImageData(Math.max(1,W), Math.max(1,H)); data=img.data; }catch(e){ return false; } } return true; } loop(()=>{ t+=0.02; if(!ensureImg()){ return; } let i=0; for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ const n=(Math.sin((x+t)*0.07)+Math.sin((y-t)*0.09)+Math.sin((x+y+t)*0.05))/3; const c=(n+1)/2; const Hh=(hue + c*180)%360; const rgb=hsl2rgb(Hh/360,1,0.5); data[i++]=rgb[0]; data[i++]=rgb[1]; data[i++]=rgb[2]; data[i++]=255; } } ctx.putImageData(img,0,0); }); canvas.addEventListener('click',()=>{hue=(hue+20)%360}); return stop }
+
+// helpers
+function hsl2rgb(h,s,l){ let r,g,b; if(s===0){ r=g=b=l; } else { const hue2rgb=(p,q,t)=>{ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; }; const q=l<0.5? l*(1+s): l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);} return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
+
+// ======== UI BIND ========
+const order=['eyes','particles','kaleido','rings','starfield','plasma','waves','ripple','confetti','vortex','tunnel','matrix','orbs','fireflies','hex','aurora','metaballs','lissajous','gridwarp','noise'];
+const names={eyes:'👀 Eyes',particles:'✨ Particles',kaleido:'🔶 Kaleidoscope',rings:'⭕ Rings',starfield:'🌌 Starfield',plasma:'🌈 Plasma',waves:'〰️ Waves',ripple:'💧 Ripple',confetti:'🎉 Confetti',vortex:'🌀 Vortex',tunnel:'🕳️ Tunnel',matrix:'▤ Matrix',orbs:'⚪ Orbs',fireflies:'🪲 Fireflies',hex:'⬡ Hex Grid',aurora:'🌌 Aurora',metaballs:'🫧 Metaballs',lissajous:'∞ Lissajous',gridwarp:'# Grid Warp',noise:'🎛️ Noise'};
+function buildChips(){ const wrap=$('#chips'); wrap.innerHTML=''; order.forEach((key,i)=>{ const b=document.createElement('button'); b.className='chip'+(i===0?' active':''); b.dataset.scene=key; b.textContent=names[key]||key; b.addEventListener('click',()=>{ $$('#chips .chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); start(key); haptic('light'); }); wrap.appendChild(b); }); }
+let current=null; function start(name){ if(current===name) return; current=name; if(!Scenes[name]) return; stop(); const fn=Scenes[name](); start._stop=fn; }
+
+function runTests(){ const res=[]; const assert=(cond,msg)=>res.push((cond?'✅ ':'❌ ')+msg); assert(!!canvas,'canvas exists'); ensureCanvasReady(); assert(W>0 && H>0,'canvas size > 0'); let ok=true; try{ const tmp=ctx.createImageData(Math.max(1,W),Math.max(1,H)); ok=!!tmp; }catch(e){ ok=false; } assert(ok,'createImageData works'); console.log('Mini‑app self‑tests:', res.join(' | ')); }
+
+function init(){ theme(); initHeader(); buildChips(); if(tg){ tg.ready(); tg.expand(); tg.MainButton.setParams({text:'Закрыть'}); tg.MainButton.show(); tg.MainButton.onClick(()=>{try{tg.close()}catch(e){}}); tg.BackButton.onClick(()=>{try{tg.close()}catch(e){}}); } $$('.tabbtn').forEach(b=>b.addEventListener('click',()=>{ setPage(b.dataset.page); haptic('light'); })); runTests(); }
+
+init();
 })();
 </script>
 </body>
